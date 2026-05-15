@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@php
+    use App\Models\User;
+@endphp
+
 @section('title', 'Użytkownicy')
 
 @section('content')
@@ -29,6 +33,11 @@
                                 <div>
                                     <p class="text-sm font-semibold text-slate-700">{{ $user->name }}</p>
                                     <p class="mt-1 text-sm text-slate-500">{{ $user->email }}</p>
+                                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                                        @foreach($user->role_labels as $roleLabel)
+                                            <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-700">{{ $roleLabel }}</span>
+                                        @endforeach
+                                    </div>
                                 </div>
                                 <span class="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">ID {{ $user->id }}</span>
                             </div>
@@ -92,6 +101,29 @@
                                 class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                             />
                             @error('email')
+                                <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Role</label>
+                            <select
+                                name="roles[]"
+                                multiple
+                                required
+                                class="mt-2 h-40 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                            >
+                                @php
+                                    $selectedRoles = old('roles', $editUser?->roles ?? [User::ROLE_USER]);
+                                @endphp
+                                <option value="{{ User::ROLE_USER }}" {{ in_array(User::ROLE_USER, $selectedRoles, true) ? 'selected' : '' }}>Użytkownik</option>
+                                <option value="{{ User::ROLE_DOCUMENT_STAFF }}" {{ in_array(User::ROLE_DOCUMENT_STAFF, $selectedRoles, true) ? 'selected' : '' }}>Pracownik merytoryczny</option>
+                                <option value="{{ User::ROLE_ADMIN }}" {{ in_array(User::ROLE_ADMIN, $selectedRoles, true) ? 'selected' : '' }}>Administrator</option>
+                            </select>
+                            @error('roles')
+                                <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                            @enderror
+                            @error('roles.*')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>

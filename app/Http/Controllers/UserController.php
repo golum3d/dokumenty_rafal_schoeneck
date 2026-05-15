@@ -24,6 +24,8 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'min:8'],
+            'roles' => ['required', 'array'],
+            'roles.*' => ['required', Rule::in([User::ROLE_USER, User::ROLE_DOCUMENT_STAFF, User::ROLE_ADMIN])],
         ]);
 
         User::create($data);
@@ -47,6 +49,8 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8'],
+            'roles' => ['required', 'array'],
+            'roles.*' => ['required', Rule::in([User::ROLE_USER, User::ROLE_DOCUMENT_STAFF, User::ROLE_ADMIN])],
         ]);
 
         if (! $request->filled('password')) {
