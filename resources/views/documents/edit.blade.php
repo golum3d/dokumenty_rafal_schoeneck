@@ -11,15 +11,15 @@
                 <p class="mt-2 text-sm text-slate-600">ID systemowy: <span class="font-medium text-slate-900">{{ $document->system_identifier }}</span></p>
             </div>
 
+            <div class="mb-6 flex flex-wrap gap-3">
+                <a href="{{ route('documents.preview', $document) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">Podgląd PDF</a>
+                <a href="{{ route('documents.download', $document) }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">Pobierz PDF</a>
+            </div>
+
             <form method="POST" action="{{ route('documents.update', $document) }}" enctype="multipart/form-data">
                 @method('PUT')
                 @include('documents._form')
             </form>
-
-            <div class="mt-6 flex flex-wrap gap-3">
-                <a href="{{ route('documents.preview', $document) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">Podgląd PDF</a>
-                <a href="{{ route('documents.download', $document) }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">Pobierz PDF</a>
-            </div>
         </div>
 
         @if($document->histories->isNotEmpty())
