@@ -8,7 +8,7 @@
             <div class="mb-6">
                 <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Edytuj dokument</p>
                 <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ $document->title }}</h1>
-                <p class="mt-2 text-sm text-slate-600">ID systemowy: <span class="font-medium text-slate-900">{{ $document->system_identifier }}</span></p>
+                <p class="mt-2 text-sm text-slate-600">Identyfikator systemowy: <span class="font-medium text-slate-900">{{ $document->system_identifier }}</span></p>
             </div>
 
             <div class="mb-6 flex flex-wrap gap-3">

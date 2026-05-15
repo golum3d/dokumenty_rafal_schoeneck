@@ -33,7 +33,7 @@
 
                     <div class="mt-6 grid gap-3 sm:grid-cols-2">
                         <div class="rounded-2xl bg-white p-4 text-sm text-slate-600 shadow-sm">
-                            <p class="text-slate-500">Systemowy id</p>
+                            <p class="text-slate-500">Identyfikator systemowy</p>
                             <p class="mt-2 font-medium text-slate-900">{{ $document->system_identifier }}</p>
                         </div>
                         <div class="rounded-2xl bg-white p-4 text-sm text-slate-600 shadow-sm">
