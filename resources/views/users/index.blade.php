@@ -28,7 +28,7 @@
 
                 <div class="grid gap-4 sm:grid-cols-2">
                     @forelse($users as $user)
-                        <article class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
+                        <article class="flex h-full flex-col justify-between rounded-[1.75rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
                                     <p class="text-sm font-semibold text-slate-700">{{ $user->name }}</p>
@@ -39,10 +39,10 @@
                                         @endforeach
                                     </div>
                                 </div>
-                                <span class="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">ID {{ $user->id }}</span>
+                                <span class="whitespace-nowrap rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">ID {{ $user->id }}</span>
                             </div>
 
-                            <div class="mt-6 flex items-center justify-between gap-3">
+                            <div class="mt-6 flex items-center justify-between gap-3 mt-auto">
                                 <p class="text-sm text-slate-600">Utworzono: {{ $user->created_at?->format('Y-m-d') ?? 'brak' }}</p>
                                 <a href="{{ route('users.edit', $user) }}" class="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-100">Edytuj</a>
                             </div>
