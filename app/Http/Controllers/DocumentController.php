@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use App\Models\DocumentCategory;
 use App\Models\DocumentHistory;
+use App\Models\DocumentStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class DocumentController extends Controller
 {
@@ -23,17 +26,22 @@ class DocumentController extends Controller
     {
         return view('documents.create', [
             'document' => new Document(),
+            'categories' => DocumentCategory::orderBy('name')->get(),
+            'statuses' => DocumentStatus::orderBy('name')->get(),
         ]);
     }
 
     public function store(Request $request)
     {
+        $categoryNames = DocumentCategory::pluck('name')->all();
+        $statusNames = DocumentStatus::pluck('name')->all();
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'document_number' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
-            'category' => ['required', 'string', 'max:255'],
-            'status' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'string', Rule::in($categoryNames)],
+            'status' => ['required', 'string', Rule::in($statusNames)],
             'valid_from' => ['nullable', 'date'],
             'valid_to' => ['nullable', 'date'],
             'active' => ['boolean'],
@@ -65,17 +73,22 @@ class DocumentController extends Controller
 
         return view('documents.edit', [
             'document' => $document,
+            'categories' => DocumentCategory::orderBy('name')->get(),
+            'statuses' => DocumentStatus::orderBy('name')->get(),
         ]);
     }
 
     public function update(Request $request, Document $document)
     {
+        $categoryNames = DocumentCategory::pluck('name')->all();
+        $statusNames = DocumentStatus::pluck('name')->all();
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'document_number' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
-            'category' => ['required', 'string', 'max:255'],
-            'status' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'string', Rule::in($categoryNames)],
+            'status' => ['required', 'string', Rule::in($statusNames)],
             'valid_from' => ['nullable', 'date'],
             'valid_to' => ['nullable', 'date'],
             'active' => ['boolean'],

@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\DocumentCategoryController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentStatusController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +24,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+
+        Route::get('/admin/document-categories', [DocumentCategoryController::class, 'index'])->name('documents.categories.index');
+        Route::get('/admin/document-categories/{category}/edit', [DocumentCategoryController::class, 'edit'])->name('documents.categories.edit');
+        Route::post('/admin/document-categories', [DocumentCategoryController::class, 'store'])->name('documents.categories.store');
+        Route::put('/admin/document-categories/{category}', [DocumentCategoryController::class, 'update'])->name('documents.categories.update');
+        Route::delete('/admin/document-categories/{category}', [DocumentCategoryController::class, 'destroy'])->name('documents.categories.destroy');
+
+        Route::get('/admin/document-statuses', [DocumentStatusController::class, 'index'])->name('documents.statuses.index');
+        Route::get('/admin/document-statuses/{status}/edit', [DocumentStatusController::class, 'edit'])->name('documents.statuses.edit');
+        Route::post('/admin/document-statuses', [DocumentStatusController::class, 'store'])->name('documents.statuses.store');
+        Route::put('/admin/document-statuses/{status}', [DocumentStatusController::class, 'update'])->name('documents.statuses.update');
+        Route::delete('/admin/document-statuses/{status}', [DocumentStatusController::class, 'destroy'])->name('documents.statuses.destroy');
     });
 
     Route::middleware('can:manage-documents')->group(function () {

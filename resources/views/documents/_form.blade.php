@@ -39,25 +39,37 @@
     <div class="grid gap-4 lg:grid-cols-2">
         <div>
             <label class="block text-sm font-medium text-slate-700">Kategoria</label>
-            <input
-                type="text"
+            <select
                 name="category"
-                value="{{ old('category', $document->category) }}"
                 required
-                class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-            />
+                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+            >
+                <option value="" disabled {{ old('category', $document->category) ? '' : 'selected' }}>Wybierz kategorię</option>
+                @foreach($categories as $categoryOption)
+                    <option value="{{ $categoryOption->name }}" {{ old('category', $document->category) === $categoryOption->name ? 'selected' : '' }}>{{ $categoryOption->name }}</option>
+                @endforeach
+            </select>
+            @if($categories->isEmpty())
+                <p class="mt-2 text-sm text-slate-500">Brak kategorii. Dodaj kategorię w panelu administratora.</p>
+            @endif
             @error('category')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
         </div>
 
         <div>
             <label class="block text-sm font-medium text-slate-700">Status</label>
-            <input
-                type="text"
+            <select
                 name="status"
-                value="{{ old('status', $document->status) }}"
                 required
-                class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-            />
+                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+            >
+                <option value="" disabled {{ old('status', $document->status) ? '' : 'selected' }}>Wybierz status</option>
+                @foreach($statuses as $statusOption)
+                    <option value="{{ $statusOption->name }}" {{ old('status', $document->status) === $statusOption->name ? 'selected' : '' }}>{{ $statusOption->name }}</option>
+                @endforeach
+            </select>
+            @if($statuses->isEmpty())
+                <p class="mt-2 text-sm text-slate-500">Brak statusów. Dodaj status w panelu administratora.</p>
+            @endif
             @error('status')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
         </div>
     </div>

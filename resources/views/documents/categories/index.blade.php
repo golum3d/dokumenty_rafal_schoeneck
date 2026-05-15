@@ -1,0 +1,79 @@
+@extends('layouts.app')
+
+@section('title', 'Kategorie dokumentów')
+
+@section('content')
+    <div class="space-y-8">
+        @if (session('success'))
+            <div class="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-900 shadow-sm">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <div class="rounded-[2rem] bg-white p-8 shadow-xl ring-1 ring-slate-200">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm uppercase tracking-[0.32em] text-slate-500">Kategorie dokumentów</p>
+                    <h1 class="mt-3 text-3xl font-semibold text-slate-950">Zarządzaj kategoriami</h1>
+                    <p class="mt-2 text-sm text-slate-600">Dodaj nowe kategorie, które będą dostępne w formularzu dokumentu.</p>
+                </div>
+            </div>
+
+            <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+                <section class="space-y-6">
+                    @if($categories->isEmpty())
+                        <div class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-8 text-center text-slate-600">
+                            Brak kategorii. Dodaj pierwszą kategorię po prawej stronie.
+                        </div>
+                    @else
+                        <div class="space-y-3">
+                            @foreach($categories as $category)
+                                <div class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                                    <span class="text-sm text-slate-800">{{ $category->name }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ route('documents.categories.edit', $category) }}" class="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-100">Edytuj</a>
+                                        <form method="POST" action="{{ route('documents.categories.destroy', $category) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100">Usuń</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </section>
+
+                <aside class="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
+                    @if(isset($editCategory))
+                        <h2 class="text-xl font-semibold text-slate-950">Edytuj kategorię</h2>
+                        <form method="POST" action="{{ route('documents.categories.update', $editCategory) }}" class="mt-6 space-y-4">
+                            @csrf
+                            @method('PUT')
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700">Nazwa kategorii</label>
+                                <input name="name" value="{{ old('name', $editCategory->name) }}" required class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200" />
+                                @error('name')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <button type="submit" class="inline-flex justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">Zapisz zmiany</button>
+                                <a href="{{ route('documents.categories.index') }}" class="inline-flex justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">Anuluj</a>
+                            </div>
+                        </form>
+                    @else
+                        <h2 class="text-xl font-semibold text-slate-950">Dodaj kategorię</h2>
+                        <form method="POST" action="{{ route('documents.categories.store') }}" class="mt-6 space-y-4">
+                            @csrf
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700">Nazwa kategorii</label>
+                                <input name="name" value="{{ old('name') }}" required class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200" />
+                                @error('name')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                            </div>
+                            <button type="submit" class="inline-flex justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">Dodaj kategorię</button>
+                        </form>
+                    @endif
+                </aside>
+            </div>
+        </div>
+    </div>
+@endsection

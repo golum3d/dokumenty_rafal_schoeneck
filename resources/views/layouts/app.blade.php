@@ -22,6 +22,8 @@
                         @endcan
                         @can('manage-users')
                             <a href="{{ route('users.index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Użytkownicy</a>
+                            <a href="{{ route('documents.categories.index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Kategorie</a>
+                            <a href="{{ route('documents.statuses.index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Statusy</a>
                         @endcan
                     </nav>
 
