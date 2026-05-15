@@ -55,6 +55,6 @@ class Document extends Model
 
     public function histories()
     {
-        return $this->hasMany(DocumentHistory::class);
+        return $this->hasMany(DocumentHistory::class)->orderBy('created_at', 'desc');
     }
 }

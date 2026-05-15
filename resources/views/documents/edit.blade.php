@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Edytuj dokument')
+@section('title', __('documents.edit_title'))
 
 @section('content')
     <div class="space-y-8">
         <div class="rounded-[2rem] bg-white p-8 shadow-xl ring-1 ring-slate-200">
             <div class="mb-6">
-                <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Edytuj dokument</p>
+                <p class="text-sm uppercase tracking-[0.3em] text-slate-500">{{ __('documents.edit_title') }}</p>
                 <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ $document->title }}</h1>
-                <p class="mt-2 text-sm text-slate-600">Identyfikator systemowy: <span class="font-medium text-slate-900">{{ $document->system_identifier }}</span></p>
+                <p class="mt-2 text-sm text-slate-600">{{ __('documents.fields.system_identifier') }}: <span class="font-medium text-slate-900">{{ $document->system_identifier }}</span></p>
             </div>
 
             <div class="mb-6 flex flex-wrap gap-3">
@@ -24,7 +24,7 @@
 
         @if($document->histories->isNotEmpty())
             <section class="rounded-[2rem] bg-slate-50 p-8 shadow-sm ring-1 ring-slate-200">
-                <h2 class="text-2xl font-semibold text-slate-950">Historia zmian</h2>
+                <h2 class="text-2xl font-semibold text-slate-950">{{ __('documents.history') }}</h2>
                 <div class="mt-6 space-y-4">
                     @foreach($document->histories as $history)
                         <div class="rounded-2xl bg-white p-5 shadow-sm">
@@ -37,10 +37,13 @@
 
                             <div class="mt-4 space-y-3 text-sm text-slate-600">
                                 @foreach($history->changes as $field => $change)
+                                    @php
+                                        $fieldKey = 'documents.fields.' . $field;
+                                    @endphp
                                     <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                                        <p class="font-semibold text-slate-900">{{ ucfirst(str_replace('_', ' ', $field)) }}</p>
-                                        <p class="mt-2 text-slate-600">Z: <span class="font-medium text-slate-900">{{ $change['old'] ?? '–' }}</span></p>
-                                        <p class="text-slate-600">Na: <span class="font-medium text-slate-900">{{ $change['new'] ?? '–' }}</span></p>
+                                        <p class="font-semibold text-slate-900">{{ Lang::has($fieldKey) ? __($fieldKey) : ucfirst(str_replace('_', ' ', $field)) }}</p>
+                                        <p class="mt-2 text-slate-600">{{ __('documents.change_from') }} <span class="font-medium text-slate-900">{{ $change['old'] ?? '–' }}</span></p>
+                                        <p class="text-slate-600">{{ __('documents.change_to') }} <span class="font-medium text-slate-900">{{ $change['new'] ?? '–' }}</span></p>
                                     </div>
                                 @endforeach
                             </div>

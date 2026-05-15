@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dokumenty')
+@section('title', __('documents.module_title'))
 
 @section('content')
     <div class="space-y-8">
@@ -12,11 +12,11 @@
 
         <div class="flex flex-col gap-4 rounded-[2rem] bg-white p-8 shadow-xl ring-1 ring-slate-200 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Moduł dokumentów</p>
-                <h1 class="mt-3 text-3xl font-semibold text-slate-950">Lista dokumentów</h1>
-                <p class="mt-2 text-sm text-slate-600">Przeglądaj, pobieraj i edytuj metadane swoich dokumentów.</p>
+                <p class="text-sm uppercase tracking-[0.3em] text-slate-500">{{ __('documents.module_title') }}</p>
+                <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ __('documents.module_title') }}</h1>
+                <p class="mt-2 text-sm text-slate-600">{{ __('documents.module_description') }}</p>
             </div>
-            <a href="{{ route('documents.create') }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">Dodaj dokument</a>
+            <a href="{{ route('documents.create') }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">{{ __('documents.buttons.create') }}</a>
         </div>
 
         <div class="grid gap-4 xl:grid-cols-2">
@@ -26,18 +26,18 @@
                         <div>
                             <p class="text-sm uppercase tracking-[0.28em] text-slate-500">{{ $document->category }}</p>
                             <h2 class="mt-2 text-xl font-semibold text-slate-950">{{ $document->title }}</h2>
-                            <p class="mt-2 text-sm text-slate-600">Numer dokumentu: <span class="font-medium text-slate-900">{{ $document->document_number }}</span></p>
+                            <p class="mt-2 text-sm text-slate-600">{{ __('documents.fields.document_number') }}: <span class="font-medium text-slate-900">{{ $document->document_number }}</span></p>
                         </div>
                         <span class="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">{{ $document->status }}</span>
                     </div>
 
                     <div class="mt-6 grid gap-3 sm:grid-cols-2">
                         <div class="rounded-2xl bg-white p-4 text-sm text-slate-600 shadow-sm">
-                            <p class="text-slate-500">Identyfikator systemowy</p>
+                            <p class="text-slate-500">{{ __('documents.fields.system_identifier') }}</p>
                             <p class="mt-2 font-medium text-slate-900">{{ $document->system_identifier }}</p>
                         </div>
                         <div class="rounded-2xl bg-white p-4 text-sm text-slate-600 shadow-sm">
-                            <p class="text-slate-500">Aktywny</p>
+                            <p class="text-slate-500">{{ __('documents.fields.active') }}</p>
                             <p class="mt-2 font-medium text-slate-900">{{ $document->active ? 'Tak' : 'Nie' }}</p>
                         </div>
                     </div>
@@ -48,16 +48,16 @@
                     </div>
 
                     <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <a href="{{ route('documents.preview', $document) }}" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">Podgląd PDF</a>
+                        <a href="{{ route('documents.preview', $document) }}" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.preview') }}</a>
                         <div class="flex flex-wrap gap-3">
-                            <a href="{{ route('documents.download', $document) }}" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">Pobierz PDF</a>
-                            <a href="{{ route('documents.edit', $document) }}" class="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">Edytuj dokument</a>
+                            <a href="{{ route('documents.download', $document) }}" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.download') }}</a>
+                            <a href="{{ route('documents.edit', $document) }}" class="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">{{ __('documents.buttons.edit_document') }}</a>
                         </div>
                     </div>
                 </article>
             @empty
                 <div class="rounded-[2rem] border border-slate-200 bg-white p-10 text-center text-slate-600 shadow-sm">
-                    Brak dokumentów w bazie. Dodaj pierwszy dokument za pomocą przycisku powyżej.
+                    {{ __('documents.empty') }}
                 </div>
             @endforelse
         </div>
