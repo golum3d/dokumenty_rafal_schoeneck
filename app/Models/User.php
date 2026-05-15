@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Document;
+use App\Models\DocumentHistory;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -29,5 +31,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'created_by');
+    }
+
+    public function documentHistories()
+    {
+        return $this->hasMany(DocumentHistory::class);
     }
 }
