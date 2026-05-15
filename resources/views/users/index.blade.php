@@ -105,21 +105,68 @@
                             @enderror
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700">Role</label>
-                            <select
-                                name="roles[]"
-                                multiple
-                                required
-                                class="mt-2 h-40 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                        <div class="relative" x-data="">
+                            <label for="roles" class="block text-sm font-medium text-slate-700">Role</label>
+
+                            @php
+                                $selectedRoles = old('roles', $editUser?->roles ?? [User::ROLE_USER]);
+                                if (!is_array($selectedRoles)) {
+                                    $selectedRoles = explode(',', $selectedRoles);
+                                }
+                                $roleOptions = [
+                                    User::ROLE_USER => 'Użytkownik',
+                                    User::ROLE_DOCUMENT_STAFF => 'Pracownik merytoryczny',
+                                    User::ROLE_ADMIN => 'Administrator',
+                                ];
+                            @endphp
+
+                            <button
+                                type="button"
+                                id="rolesToggle"
+                                class="mt-2 flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm text-slate-900 shadow-sm transition hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             >
-                                @php
-                                    $selectedRoles = old('roles', $editUser?->roles ?? [User::ROLE_USER]);
-                                @endphp
-                                <option value="{{ User::ROLE_USER }}" {{ in_array(User::ROLE_USER, $selectedRoles, true) ? 'selected' : '' }}>Użytkownik</option>
-                                <option value="{{ User::ROLE_DOCUMENT_STAFF }}" {{ in_array(User::ROLE_DOCUMENT_STAFF, $selectedRoles, true) ? 'selected' : '' }}>Pracownik merytoryczny</option>
-                                <option value="{{ User::ROLE_ADMIN }}" {{ in_array(User::ROLE_ADMIN, $selectedRoles, true) ? 'selected' : '' }}>Administrator</option>
+                                <span id="selectedRolesPlaceholder" class="flex flex-wrap gap-2">
+                                    @if(empty($selectedRoles))
+                                        <span class="text-slate-400">Wybierz role...</span>
+                                    @else
+                                        @foreach($selectedRoles as $selectedRole)
+                                            <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-700">{{ $roleOptions[$selectedRole] ?? $selectedRole }}</span>
+                                        @endforeach
+                                    @endif
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5 text-slate-500">
+                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.08 1.04l-4.25 4.65a.75.75 0 01-1.08 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+
+                            <div
+                                id="rolesDropdown"
+                                class="invisible absolute left-0 right-0 z-20 mt-2 max-h-52 overflow-auto rounded-2xl border border-slate-200 bg-white shadow-lg ring-1 ring-slate-200 transition duration-150"
+                                style="opacity: 0; transform: translateY(-6px);"
+                            >
+                                @foreach($roleOptions as $roleValue => $roleLabel)
+                                    <button
+                                        type="button"
+                                        data-role="{{ $roleValue }}"
+                                        class="group flex w-full items-center justify-between border-b border-slate-200 px-4 py-3 text-sm text-slate-700 transition hover:bg-slate-50"
+                                    >
+                                        <span>{{ $roleLabel }}</span>
+                                        <span class="h-5 w-5 rounded-full border border-slate-300 bg-white text-slate-700 transition group-hover:border-indigo-500 group-hover:bg-indigo-50" data-role-icon>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="hidden h-4 w-4" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M16.704 5.29a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0l-3.25-3.25a.75.75 0 111.06-1.06l2.72 2.72 6.72-6.72a.75.75 0 011.06 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                @endforeach
+                            </div>
+
+                            <select id="rolesSelect" name="roles[]" multiple class="hidden" required>
+                                @foreach($roleOptions as $roleValue => $roleLabel)
+                                    <option value="{{ $roleValue }}" {{ in_array($roleValue, $selectedRoles, true) ? 'selected' : '' }}>{{ $roleLabel }}</option>
+                                @endforeach
                             </select>
+
+                            <p class="mt-2 text-sm text-slate-500">Kliknij, aby wybrać lub odznaczyć rolę.</p>
                             @error('roles')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
@@ -127,6 +174,77 @@
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                const toggle = document.getElementById('rolesToggle');
+                                const dropdown = document.getElementById('rolesDropdown');
+                                const select = document.getElementById('rolesSelect');
+                                const selectedPlaceholder = document.getElementById('selectedRolesPlaceholder');
+                                const items = Array.from(dropdown.querySelectorAll('button[data-role]'));
+
+                                const closeDropdown = () => {
+                                    dropdown.style.opacity = '0';
+                                    dropdown.style.transform = 'translateY(-6px)';
+                                    dropdown.classList.add('invisible');
+                                };
+
+                                const openDropdown = () => {
+                                    dropdown.classList.remove('invisible');
+                                    dropdown.style.opacity = '1';
+                                    dropdown.style.transform = 'translateY(0)';
+                                };
+
+                                const updateSelected = () => {
+                                    const selected = Array.from(select.selectedOptions).map(option => option.value);
+                                    selectedPlaceholder.innerHTML = '';
+
+                                    if (selected.length === 0) {
+                                        selectedPlaceholder.innerHTML = '<span class="text-slate-400">Wybierz role...</span>';
+                                    } else {
+                                        selected.forEach(value => {
+                                            const label = select.querySelector(`option[value="${value}"]`).textContent;
+                                            const badge = document.createElement('span');
+                                            badge.className = 'inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-700';
+                                            badge.textContent = label;
+                                            selectedPlaceholder.appendChild(badge);
+                                        });
+                                    }
+
+                                    items.forEach(item => {
+                                        const icon = item.querySelector('[data-role-icon] svg');
+                                        const isSelected = selected.includes(item.dataset.role);
+                                        icon.classList.toggle('hidden', !isSelected);
+                                    });
+                                };
+
+                                toggle.addEventListener('click', function (event) {
+                                    event.preventDefault();
+                                    if (dropdown.classList.contains('invisible')) {
+                                        openDropdown();
+                                    } else {
+                                        closeDropdown();
+                                    }
+                                });
+
+                                items.forEach(item => {
+                                    item.addEventListener('click', function () {
+                                        const role = this.dataset.role;
+                                        const option = select.querySelector(`option[value="${role}"]`);
+                                        option.selected = !option.selected;
+                                        updateSelected();
+                                    });
+                                });
+
+                                document.addEventListener('click', function (event) {
+                                    if (!event.target.closest('#rolesToggle') && !event.target.closest('#rolesDropdown')) {
+                                        closeDropdown();
+                                    }
+                                });
+
+                                updateSelected();
+                            });
+                        </script>
 
                         <div>
                             <label class="block text-sm font-medium text-slate-700">Hasło</label>
