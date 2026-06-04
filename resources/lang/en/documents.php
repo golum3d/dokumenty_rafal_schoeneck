@@ -49,5 +49,6 @@ return [
         'created_by' => 'Author',
         'original_filename' => 'Original filename',
         'file_path' => 'File path',
+        'folder_id' => 'Folder',
     ],
 ];

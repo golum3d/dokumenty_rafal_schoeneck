@@ -187,7 +187,10 @@ class DocumentController extends Controller
         $changes = [];
         foreach ($original as $key => $value) {
             if ($document->getAttribute($key) != $value) {
-                $changes[$key] = ['old' => $value, 'new' => $document->getAttribute($key)];
+                $changes[$key] = [
+                    'old' => $this->formatHistoryValue($key, $value),
+                    'new' => $this->formatHistoryValue($key, $document->getAttribute($key)),
+                ];
             }
         }
 
@@ -295,12 +298,41 @@ class DocumentController extends Controller
             }
         }
 
-        $document->update(['folder_id' => $validated['folder_id'] ?? null]);
+        $originalFolderId = $document->folder_id;
+        $newFolderId = $validated['folder_id'] ?? null;
+
+        $document->update(['folder_id' => $newFolderId]);
+
+        if ($originalFolderId != $newFolderId) {
+            DocumentHistory::create([
+                'document_id' => $document->id,
+                'user_id' => Auth::id(),
+                'changes' => [
+                    'folder_id' => [
+                        'old' => $this->formatHistoryValue('folder_id', $originalFolderId),
+                        'new' => $this->formatHistoryValue('folder_id', $newFolderId),
+                    ],
+                ],
+            ]);
+        }
 
         return response()->json([
             'success' => true,
             'message' => __('documents.document_moved'),
             'document' => $document,
         ]);
+    }
+
+    protected function formatHistoryValue(string $field, mixed $value): mixed
+    {
+        if ($field !== 'folder_id') {
+            return $value;
+        }
+
+        if (empty($value)) {
+            return null;
+        }
+
+        return Folder::find($value)?->getFullPath();
     }
 }

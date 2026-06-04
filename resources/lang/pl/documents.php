@@ -64,6 +64,7 @@ return [
         'original_filename' => 'Nazwa pliku',
         'file_path' => 'Ścieżka pliku',
         'folder' => 'Folder',
+        'folder_id' => 'Folder',
         'parent' => 'Folder nadrzędny',
         'name' => 'Nazwa',
     ],
