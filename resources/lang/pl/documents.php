@@ -34,6 +34,10 @@ return [
     'folder_not_empty' => 'Folder nie jest pusty. Usuń zawartość przed usunięciem folderu.',
     'confirm_delete_folder' => 'Czy na pewno chcesz usunąć ten folder?',
     'edit_folder' => 'Edytuj folder',
+    'folder_move_invalid' => 'Nie można przenieść folderu do samego siebie ani do jego podfolderu.',
+    'folder_unauthorized' => 'Nie masz uprawnień do wybranego folderu.',
+    'folder_moved' => 'Folder został przeniesiony.',
+    'document_moved' => 'Dokument został przeniesiony.',
     'documents' => 'dokumenty',
     'buttons' => [
         'create' => 'Dodaj dokument',

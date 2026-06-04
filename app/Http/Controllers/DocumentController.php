@@ -177,4 +177,29 @@ class DocumentController extends Controller
     {
         return Storage::download($document->file_path, $document->original_filename);
     }
+
+    public function move(Request $request, Document $document)
+    {
+        $validated = $request->validate([
+            'folder_id' => ['nullable', 'exists:folders,id'],
+        ]);
+
+        if (! empty($validated['folder_id'])) {
+            $folder = Folder::where('id', $validated['folder_id'])
+                ->where('user_id', Auth::id())
+                ->first();
+
+            if (! $folder) {
+                return response()->json(['error' => __('documents.folder_unauthorized')], 403);
+            }
+        }
+
+        $document->update(['folder_id' => $validated['folder_id'] ?? null]);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('documents.document_moved'),
+            'document' => $document,
+        ]);
+    }
 }

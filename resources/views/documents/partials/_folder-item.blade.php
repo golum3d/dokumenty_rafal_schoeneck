@@ -1,5 +1,15 @@
 <div class="border-b border-slate-200 last:border-b-0">
-    <div class="flex items-center gap-3 px-6 py-4 hover:bg-slate-50 cursor-pointer" onclick="toggleFolder({{ $folder->id }})">
+    <div class="flex items-center gap-3 px-6 py-4 hover:bg-slate-50 cursor-pointer"
+         draggable="true"
+         data-drag-type="folder"
+         data-drag-id="{{ $folder->id }}"
+         ondragstart="onDragStart(event)"
+         ondragend="onDragEnd(event)"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event)"
+         data-folder-id="{{ $folder->id }}"
+         onclick="toggleFolder({{ $folder->id }})">
         <span id="folder-toggle-{{ $folder->id }}" class="text-slate-500 font-bold w-4">{{ $folder->children->count() > 0 || $folder->documents->count() > 0 ? '▼' : '•' }}</span>
         <svg class="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
             <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
@@ -27,7 +37,11 @@
         </div>
     </div>
 
-    <div id="folder-content-{{ $folder->id }}" class="bg-slate-50">
+    <div id="folder-content-{{ $folder->id }}" class="bg-slate-50 drop-target"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event)"
+         data-folder-id="{{ $folder->id }}">
         {{-- Nested folders --}}
         @forelse($folder->children as $childFolder)
             @include('documents.partials._folder-item', ['folder' => $childFolder, 'level' => ($level ?? 0) + 1])

@@ -22,7 +22,11 @@
             </div>
         </div>
 
-        <div class="rounded-[2rem] bg-white shadow-xl ring-1 ring-slate-200">
+        <div id="rootDropZone" class="rounded-[2rem] bg-white shadow-xl ring-1 ring-slate-200 drop-target"
+             ondragover="onDragOver(event)"
+             ondragleave="onDragLeave(event)"
+             ondrop="onDrop(event)"
+             data-folder-id="">
             <div class="divide-y divide-slate-200">
                 {{-- Render folders and documents recursively --}}
                 @forelse($folders as $folder)
@@ -133,6 +137,85 @@
                 console.error('Error:', error);
             }
         });
+
+        function onDragStart(event) {
+            const target = event.currentTarget;
+            const dragType = target.dataset.dragType;
+            const dragId = target.dataset.dragId;
+
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', `${dragType}:${dragId}`);
+            target.classList.add('opacity-60');
+        }
+
+        function onDragEnd(event) {
+            event.currentTarget.classList.remove('opacity-60');
+        }
+
+        function onDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            event.currentTarget.classList.add('bg-slate-100');
+        }
+
+        function onDragLeave(event) {
+            event.currentTarget.classList.remove('bg-slate-100');
+        }
+
+        function onDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('bg-slate-100');
+
+            const payload = event.dataTransfer.getData('text/plain');
+            if (!payload) {
+                return;
+            }
+
+            const [type, id] = payload.split(':');
+            const targetFolderId = event.currentTarget.dataset.folderId || '';
+
+            if (type === 'folder') {
+                moveFolder(id, targetFolderId);
+            } else if (type === 'document') {
+                moveDocument(id, targetFolderId);
+            }
+        }
+
+        async function moveFolder(folderId, targetFolderId) {
+            const response = await fetch(`/folders/${folderId}/move`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ parent_id: targetFolderId || null }),
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Wystąpił błąd.');
+            }
+        }
+
+        async function moveDocument(documentId, targetFolderId) {
+            const response = await fetch(`/documents/${documentId}/move`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ folder_id: targetFolderId || null }),
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Wystąpił błąd.');
+            }
+        }
 
         function deleteFolder(folderId) {
             if (confirm('{{ __("documents.confirm_delete_folder") }}')) {

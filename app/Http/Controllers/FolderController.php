@@ -78,4 +78,45 @@ class FolderController extends Controller
             'message' => __('documents.folder_deleted'),
         ]);
     }
+
+    public function move(Request $request, Folder $folder)
+    {
+        if ($folder->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'parent_id' => ['nullable', 'exists:folders,id', Rule::notIn([$folder->id])],
+        ]);
+
+        if (! empty($validated['parent_id']) && $this->isDescendant($folder, $validated['parent_id'])) {
+            return response()->json(['error' => __('documents.folder_move_invalid')], 422);
+        }
+
+        $folder->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('documents.folder_moved'),
+            'folder' => $folder,
+        ]);
+    }
+
+    protected function isDescendant(Folder $folder, ?int $parentId): bool
+    {
+        if (empty($parentId)) {
+            return false;
+        }
+
+        $parent = Folder::find($parentId);
+
+        while ($parent) {
+            if ($parent->id === $folder->id) {
+                return true;
+            }
+            $parent = $parent->parent;
+        }
+
+        return false;
+    }
 }
