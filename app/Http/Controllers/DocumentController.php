@@ -44,18 +44,45 @@ class DocumentController extends Controller
      */
     public function userIndex()
     {
-        $documents = Document::where('active', true)
+        // Base visible documents query
+        $visibleQuery = Document::where('active', true)
             ->where(function ($q) {
                 $q->whereNull('valid_from')->orWhere('valid_from', '<=', now());
             })
             ->where(function ($q) {
                 $q->whereNull('valid_to')->orWhere('valid_to', '>=', now());
+            });
+
+        // Folders that contain visible documents (including nested)
+        $folders = Folder::whereHas('documents', function ($q) use ($visibleQuery) {
+                // apply same visibility constraints
+                $q->where('active', true)
+                    ->where(function ($q2) {
+                        $q2->whereNull('valid_from')->orWhere('valid_from', '<=', now());
+                    })
+                    ->where(function ($q2) {
+                        $q2->whereNull('valid_to')->orWhere('valid_to', '>=', now());
+                    });
             })
-            ->orderBy('created_at', 'desc')
+            ->with(['documents' => function ($q) {
+                $q->where('active', true)
+                    ->where(function ($q2) {
+                        $q2->whereNull('valid_from')->orWhere('valid_from', '<=', now());
+                    })
+                    ->where(function ($q2) {
+                        $q2->whereNull('valid_to')->orWhere('valid_to', '>=', now());
+                    })
+                    ->orderBy('created_at', 'desc');
+            }, 'children'])
+            ->orderBy('name')
             ->get();
 
+        // Documents without folder
+        $noFolderDocuments = (clone $visibleQuery)->whereNull('folder_id')->orderBy('created_at', 'desc')->get();
+
         return view('documents.user_index', [
-            'documents' => $documents,
+            'folders' => $folders,
+            'noFolderDocuments' => $noFolderDocuments,
         ]);
     }
 
