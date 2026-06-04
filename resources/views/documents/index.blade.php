@@ -155,16 +155,27 @@
         function onDragOver(event) {
             event.preventDefault();
             event.dataTransfer.dropEffect = 'move';
-            event.currentTarget.classList.add('bg-slate-100');
+            const dropTarget = event.target.closest('[data-folder-id]');
+            if (dropTarget) {
+                dropTarget.classList.add('bg-slate-100');
+            }
         }
 
         function onDragLeave(event) {
-            event.currentTarget.classList.remove('bg-slate-100');
+            const dropTarget = event.target.closest('[data-folder-id]');
+            if (dropTarget) {
+                dropTarget.classList.remove('bg-slate-100');
+            }
         }
 
         function onDrop(event) {
             event.preventDefault();
-            event.currentTarget.classList.remove('bg-slate-100');
+            const dropTarget = event.target.closest('[data-folder-id]');
+            if (!dropTarget) {
+                return;
+            }
+
+            dropTarget.classList.remove('bg-slate-100');
 
             const payload = event.dataTransfer.getData('text/plain');
             if (!payload) {
@@ -172,7 +183,7 @@
             }
 
             const [type, id] = payload.split(':');
-            const targetFolderId = event.currentTarget.dataset.folderId || '';
+            const targetFolderId = dropTarget.dataset.folderId || '';
 
             if (type === 'folder') {
                 moveFolder(id, targetFolderId);
