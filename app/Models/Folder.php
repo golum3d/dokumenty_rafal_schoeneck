@@ -44,4 +44,20 @@ class Folder extends Model
     {
         return $this->hasMany(Document::class);
     }
+    
+        /**
+         * Get the full path of the folder.
+         */
+        public function getFullPath(): string
+        {
+            $path = $this->name;
+            $parent = $this->parent;
+        
+            while ($parent) {
+                $path = $parent->name . '/' . $path;
+                $parent = $parent->parent;
+            }
+        
+            return '/' . $path;
+        }
 }

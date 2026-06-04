@@ -36,6 +36,20 @@
         @error('description')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
     </div>
 
+    <div>
+        <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.folder') }}</label>
+        <select
+            name="folder_id"
+            class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+        >
+            <option value="">{{ __('documents.no_folder') }}</option>
+            @foreach($folders as $folderOption)
+                <option value="{{ $folderOption->id }}" {{ old('folder_id', $document->folder_id) == $folderOption->id ? 'selected' : '' }}>{{ $folderOption->getFullPath() }}</option>
+            @endforeach
+        </select>
+        @error('folder_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+    </div>
+
     <div class="grid gap-4 lg:grid-cols-2">
         <div>
             <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.category') }}</label>
@@ -56,22 +70,6 @@
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.folder') }}</label>
-            <select
-                name="folder_id"
-                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-            >
-                <option value="">{{ __('documents.no_folder') }}</option>
-                @foreach($folders as $folderOption)
-                    <option value="{{ $folderOption->id }}" {{ old('folder_id', $document->folder_id) == $folderOption->id ? 'selected' : '' }}>{{ $folderOption->name }}</option>
-                @endforeach
-            </select>
-            @error('folder_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-        </div>
-    </div>
-
-    <div class="grid gap-4 lg:grid-cols-2">
-        <div>
             <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.status') }}</label>
             <select
                 name="status"
@@ -88,8 +86,6 @@
             @endif
             @error('status')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
         </div>
-
-        <div></div>
     </div>
 
     <div class="grid gap-4 lg:grid-cols-2">
