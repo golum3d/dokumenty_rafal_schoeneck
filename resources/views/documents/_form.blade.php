@@ -96,9 +96,10 @@
         <div>
             <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.valid_from') }}</label>
             <input
-                type="date"
+                type="text"
                 name="valid_from"
                 value="{{ old('valid_from', optional($document->valid_from)->format('Y-m-d')) }}"
+                placeholder="YYYY-MM-DD"
                 class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
             />
             @error('valid_from')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
@@ -107,9 +108,10 @@
         <div>
             <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.valid_to') }}</label>
             <input
-                type="date"
+                type="text"
                 name="valid_to"
                 value="{{ old('valid_to', optional($document->valid_to)->format('Y-m-d')) }}"
+                placeholder="YYYY-MM-DD"
                 class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
             />
             @error('valid_to')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror

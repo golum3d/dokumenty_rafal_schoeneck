@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'Laravel'))</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     @vite(['resources/css/app.css'])
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-950 antialiased">
@@ -46,5 +47,29 @@
             </div>
         </main>
     </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pl.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const validFromElement = document.querySelector('input[name="valid_from"]');
+            const validToElement = document.querySelector('input[name="valid_to"]');
+            
+            const flatpickrOptions = {
+                locale: 'pl',
+                dateFormat: 'Y-m-d',
+                firstDayOfWeek: 1, // 1 = poniedziałek
+                allowInput: true
+            };
+            
+            if (validFromElement) {
+                flatpickr(validFromElement, flatpickrOptions);
+            }
+            
+            if (validToElement) {
+                flatpickr(validToElement, flatpickrOptions);
+            }
+        });
+    </script>
 </body>
 </html>
