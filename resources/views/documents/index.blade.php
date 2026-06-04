@@ -80,7 +80,7 @@
                         {{ __('documents.buttons.cancel') }}
                     </button>
                     <button type="submit" class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700" id="folderSubmitButton">
-                        {{ __('documents.buttons.create') }}
+                        {{ __('documents.buttons.create_folder') }}
                     </button>
                 </div>
             </form>
@@ -94,7 +94,7 @@
             document.getElementById('folderParent').value = options.parent_id || '';
             document.getElementById('folderId').value = options.id || '';
             document.getElementById('folderModalTitle').textContent = options.isEdit ? '{{ __('documents.edit_folder') }}' : '{{ __('documents.new_folder') }}';
-            document.getElementById('folderSubmitButton').textContent = options.isEdit ? '{{ __('documents.buttons.save') }}' : '{{ __('documents.buttons.create') }}';
+            document.getElementById('folderSubmitButton').textContent = options.isEdit ? '{{ __('documents.buttons.save') }}' : '{{ __('documents.buttons.create_folder') }}';
             document.getElementById('folderName').focus();
         }
 
@@ -104,7 +104,7 @@
             document.getElementById('folderId').value = '';
             document.getElementById('folderParent').value = '';
             document.getElementById('folderModalTitle').textContent = '{{ __('documents.new_folder') }}';
-            document.getElementById('folderSubmitButton').textContent = '{{ __('documents.buttons.create') }}';
+            document.getElementById('folderSubmitButton').textContent = '{{ __('documents.buttons.create_folder') }}';
         }
 
         document.getElementById('folderForm').addEventListener('submit', async function(e) {

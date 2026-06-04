@@ -19,12 +19,12 @@
             <p class="text-xs text-slate-500">{{ $folder->documents->count() }} {{ __('documents.documents') }}</p>
         </div>
         <div class="flex gap-2" onclick="event.stopPropagation();">
-            <button onclick="openFolderModal({ id: {{ $folder->id }}, name: @json($folder->name), parent_id: {{ $folder->parent_id ?? 'null' }}, isEdit: true })" class="text-slate-500 hover:text-slate-700 p-1">
+            <button onclick='openFolderModal({ id: {{ $folder->id }}, name: @json($folder->name), parent_id: {{ $folder->parent_id ?? 'null' }}, isEdit: true })' class="text-slate-500 hover:text-slate-700 p-1">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M17.414 2.586a2 2 0 010 2.828L8.414 14.414a1 1 0 01-.442.263l-4 1a1 1 0 01-1.213-1.213l1-4a1 1 0 01.263-.442L14.586 2.586a2 2 0 012.828 0zM15.5 4.5L6 14l-.5 2 2-.5L17.5 6.5 15.5 4.5z"></path>
                 </svg>
             </button>
-            <button onclick="openFolderModal({ parent_id: {{ $folder->id }} })" class="text-slate-500 hover:text-slate-700 p-1">
+            <button onclick='openFolderModal({ parent_id: {{ $folder->id }} })' class="text-slate-500 hover:text-slate-700 p-1">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
                 </svg>
