@@ -5,20 +5,46 @@
 @section('content')
     <div class="space-y-8">
         <div class="rounded-[2rem] bg-white p-8 shadow-xl ring-1 ring-slate-200">
-            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-sm uppercase tracking-[0.3em] text-slate-500">{{ __('documents.preview_title') }}</p>
-                        <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ $document->title }}</h1>
-                        <p class="mt-2 text-sm text-slate-600">{{ __('documents.fields.document_number') }}: <span class="font-medium text-slate-900">{{ $document->document_number }}</span></p>
+            <div class="mb-6">
+                <div class="w-full rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                    <p class="text-sm uppercase tracking-[0.3em] text-slate-500">{{ __('documents.preview_title') }}</p>
+                    <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ $document->title }}</h1>
+                    <p class="mt-2 text-sm text-slate-600">{{ __('documents.fields.document_number') }}: <span class="font-medium text-slate-900">{{ $document->document_number }}</span></p>
+
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <p class="text-xs text-slate-500">Kategoria</p>
+                            <p class="font-medium text-slate-900">{{ $document->category }}</p>
+
+                            <p class="mt-3 text-xs text-slate-500">Status</p>
+                            <p class="font-medium text-slate-900">{{ $document->status }}</p>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <p class="text-xs text-slate-500">Opis</p>
+                            <p class="text-sm text-slate-700">{{ $document->description }}</p>
+
+                            <p class="mt-3 text-xs text-slate-500">Ważne od — do</p>
+                            <p class="font-medium text-slate-900 text-sm">@if($document->valid_from) {{ $document->valid_from->format('d.m.Y') }} @else - @endif — @if($document->valid_to) {{ $document->valid_to->format('d.m.Y') }} @else - @endif</p>
+
+                            <p class="mt-3 text-xs text-slate-500">Plik</p>
+                            <p class="font-medium text-slate-900">{{ $document->original_filename }}</p>
+                        </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-3">
-                        <a href="{{ url()->previous() }}" onclick="event.preventDefault(); window.history.back();" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">Powrót</a>
-                        <a href="{{ route('documents.download', $document) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">{{ __('documents.buttons.download') }}</a>
+
+                    <div class="mt-6 flex gap-2">
+                        <a href="{{ url()->previous() }}" onclick="event.preventDefault(); window.history.back();" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">Powrót</a>
+                        @if(!empty($publicView))
+                            <a href="{{ route('documents.download_public', $document) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Pobierz</a>
+                        @else
+                            <a href="{{ route('documents.download', $document) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">Pobierz</a>
+                        @endif
                     </div>
                 </div>
-            <div class="h-[80vh] overflow-hidden rounded-[2rem] border border-slate-200">
+            </div>
+            <div class="h-[90vh] overflow-hidden rounded-[2rem] border border-slate-200">
                 <iframe
-                    src="{{ route('documents.file', $document) }}"
+                    src="{{ !empty($publicView) ? route('documents.file_public', $document) : route('documents.file', $document) }}"
                     class="h-full w-full"
                     frameborder="0"
                 ></iframe>

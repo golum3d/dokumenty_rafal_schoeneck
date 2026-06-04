@@ -18,9 +18,11 @@
                 @auth
                     <nav class="hidden items-center gap-4 sm:flex">
                         <a href="{{ route('dashboard') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Dashboard</a>
-                        @can('manage-documents')
+                        @if(auth()->user()->can('manage-documents'))
                             <a href="{{ route('documents.index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Dokumenty</a>
-                        @endcan
+                        @elseif(auth()->user()->hasRole(\App\Models\User::ROLE_USER))
+                            <a href="{{ route('documents.user_index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Dokumenty</a>
+                        @endif
                         @can('manage-users')
                             <a href="{{ route('users.index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Użytkownicy</a>
                             <a href="{{ route('documents.categories.index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Kategorie</a>

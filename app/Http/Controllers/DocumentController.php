@@ -39,6 +39,26 @@ class DocumentController extends Controller
         ]);
     }
 
+    /**
+     * Read-only list for regular users: active documents within valid range.
+     */
+    public function userIndex()
+    {
+        $documents = Document::where('active', true)
+            ->where(function ($q) {
+                $q->whereNull('valid_from')->orWhere('valid_from', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('valid_to')->orWhere('valid_to', '>=', now());
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('documents.user_index', [
+            'documents' => $documents,
+        ]);
+    }
+
     public function create()
     {
         $userId = Auth::id();
@@ -160,6 +180,21 @@ class DocumentController extends Controller
     {
         return view('documents.preview', [
             'document' => $document,
+            'publicView' => false,
+        ]);
+    }
+
+    /**
+     * Public preview for regular users — only when document is active and inside valid range.
+     */
+    public function previewPublic(Document $document)
+    {
+        if (! $this->isVisibleToPublic($document)) {
+            abort(403);
+        }
+        return view('documents.preview', [
+            'document' => $document,
+            'publicView' => true,
         ]);
     }
 
@@ -176,6 +211,46 @@ class DocumentController extends Controller
     public function download(Document $document)
     {
         return Storage::download($document->file_path, $document->original_filename);
+    }
+
+    /**
+     * Public download for regular users — only when document is active and inside valid range.
+     */
+    public function downloadPublic(Document $document)
+    {
+        if (! $this->isVisibleToPublic($document)) {
+            abort(403);
+        }
+
+        return $this->download($document);
+    }
+
+    public function filePublic(Document $document)
+    {
+        if (! $this->isVisibleToPublic($document)) {
+            abort(403);
+        }
+
+        return $this->file($document);
+    }
+
+    protected function isVisibleToPublic(Document $document): bool
+    {
+        if (! $document->active) {
+            return false;
+        }
+
+        $now = now();
+
+        if ($document->valid_from && $document->valid_from->gt($now)) {
+            return false;
+        }
+
+        if ($document->valid_to && $document->valid_to->lt($now)) {
+            return false;
+        }
+
+        return true;
     }
 
     public function move(Request $request, Document $document)

@@ -57,5 +57,11 @@ Route::middleware('auth')->group(function () {
         Route::patch('/documents/{document}/move', [DocumentController::class, 'move'])->name('documents.move');
     });
 
+    // Read-only documents access for regular users: list, preview and download
+    Route::get('/user/documents', [DocumentController::class, 'userIndex'])->name('documents.user_index');
+    Route::get('/user/documents/{document}/preview', [DocumentController::class, 'previewPublic'])->name('documents.preview_public');
+    Route::get('/user/documents/{document}/download', [DocumentController::class, 'downloadPublic'])->name('documents.download_public');
+    Route::get('/user/documents/{document}/file', [DocumentController::class, 'filePublic'])->name('documents.file_public');
+
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 });
