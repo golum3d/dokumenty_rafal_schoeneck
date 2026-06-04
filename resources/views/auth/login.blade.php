@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Zaloguj się')
+@section('title', __('auth.login_title'))
 
 @section('content')
     <div class="mx-auto max-w-md rounded-[2rem] bg-white p-8 shadow-xl ring-1 ring-slate-200">
         <div class="mb-8 text-center">
-            <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Zaloguj się</h1>
-            <p class="mt-2 text-sm text-slate-500">Wprowadź dane konta, aby kontynuować.</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-slate-900">{{ __('auth.login_title') }}</h1>
+            <p class="mt-2 text-sm text-slate-500">{{ __('auth.login_subtitle') }}</p>
         </div>
 
         @if ($errors->any())
@@ -23,7 +23,7 @@
             @csrf
 
             <div>
-                <label class="block text-sm font-medium text-slate-700">Email</label>
+                <label class="block text-sm font-medium text-slate-700">{{ __('auth.email') }}</label>
                 <input
                     type="email"
                     name="email"
@@ -35,7 +35,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-700">Hasło</label>
+                <label class="block text-sm font-medium text-slate-700">{{ __('auth.password') }}</label>
                 <input
                     type="password"
                     name="password"
@@ -47,12 +47,12 @@
             <div class="flex items-center justify-between text-sm text-slate-600">
                 <label class="inline-flex items-center gap-2">
                     <input type="checkbox" name="remember" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-                    Zapamiętaj mnie
+                    {{ __('auth.remember_me') }}
                 </label>
             </div>
 
             <button type="submit" class="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
-                Zaloguj
+                {{ __('auth.login_button') }}
             </button>
         </form>
     </div>
