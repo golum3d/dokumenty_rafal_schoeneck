@@ -98,8 +98,8 @@
         </div>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-        <div>
+    <div class="flex gap-4 items-end">
+        <div class="flex-1">
             <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.pdf') }}</label>
             <input
                 type="file"
@@ -109,16 +109,17 @@
                 {{ $document->exists ? '' : 'required' }}
             />
             @error('pdf')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-            @if($document->exists)
-                <p class="mt-2 text-sm text-slate-500">{{ __('documents.current_file') }}: {{ $document->original_filename }}</p>
-            @endif
         </div>
 
-        <label class="inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <label class="inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
             <input type="checkbox" name="active" value="1" {{ old('active', $document->active) ? 'checked' : '' }} class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
             {{ __('documents.fields.active') }}
         </label>
     </div>
+
+    @if($document->exists)
+        <p class="text-sm text-slate-500">{{ __('documents.current_file') }}: {{ $document->original_filename }}</p>
+    @endif
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button type="submit" class="inline-flex justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
