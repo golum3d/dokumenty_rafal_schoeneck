@@ -44,8 +44,7 @@ class WebAuthController extends Controller
     public function dashboard()
     {
         $userId = Auth::id();
-        $recentDocuments = Document::where('created_by', $userId)
-            ->where('created_at', '>=', now()->subDays(7))
+        $recentDocuments = Document::where('created_at', '>=', now()->subDays(7))
             ->orderBy('created_at', 'desc')
             ->get();
 
