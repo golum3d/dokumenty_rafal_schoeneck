@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\DocumentCategory;
 use App\Models\DocumentHistory;
 use App\Models\DocumentStatus;
+use App\Models\Folder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -15,19 +16,39 @@ class DocumentController extends Controller
 {
     public function index()
     {
-        $documents = Document::with('creator')->orderBy('created_at', 'desc')->get();
+        $userId = Auth::id();
+        // Get root level folders and documents
+        $folders = Folder::where('user_id', $userId)
+            ->whereNull('parent_id')
+            ->with(['children', 'documents'])
+            ->orderBy('name')
+            ->get();
+
+        // Get documents not in any folder
+        $documents = Document::where('folder_id', null)
+            ->with('creator')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $allFolders = Folder::where('user_id', $userId)->orderBy('name')->get();
 
         return view('documents.index', [
+            'folders' => $folders,
             'documents' => $documents,
+            'allFolders' => $allFolders,
         ]);
     }
 
     public function create()
     {
+        $userId = Auth::id();
+        $folders = Folder::where('user_id', $userId)->orderBy('name')->get();
+
         return view('documents.create', [
             'document' => new Document(),
             'categories' => DocumentCategory::orderBy('name')->get(),
             'statuses' => DocumentStatus::orderBy('name')->get(),
+            'folders' => $folders,
         ]);
     }
 
@@ -45,6 +66,7 @@ class DocumentController extends Controller
             'valid_from' => ['nullable', 'date'],
             'valid_to' => ['nullable', 'date'],
             'active' => ['boolean'],
+            'folder_id' => ['nullable', 'exists:folders,id'],
             'pdf' => ['required', 'file', 'mimetypes:application/pdf', 'max:10240'],
         ]);
 
@@ -70,11 +92,14 @@ class DocumentController extends Controller
     public function edit(Document $document)
     {
         $document->load('histories.user', 'creator');
+        $userId = Auth::id();
+        $folders = Folder::where('user_id', $userId)->orderBy('name')->get();
 
         return view('documents.edit', [
             'document' => $document,
             'categories' => DocumentCategory::orderBy('name')->get(),
             'statuses' => DocumentStatus::orderBy('name')->get(),
+            'folders' => $folders,
         ]);
     }
 
@@ -92,13 +117,14 @@ class DocumentController extends Controller
             'valid_from' => ['nullable', 'date'],
             'valid_to' => ['nullable', 'date'],
             'active' => ['boolean'],
+            'folder_id' => ['nullable', 'exists:folders,id'],
             'pdf' => ['nullable', 'file', 'mimetypes:application/pdf', 'max:10240'],
         ]);
 
         $data['active'] = $request->boolean('active');
 
         $original = $document->only([
-            'title', 'document_number', 'description', 'category', 'status', 'valid_from', 'valid_to', 'active', 'file_path', 'original_filename',
+            'title', 'document_number', 'description', 'category', 'status', 'valid_from', 'valid_to', 'active', 'file_path', 'original_filename', 'folder_id',
         ]);
 
         if ($request->hasFile('pdf')) {

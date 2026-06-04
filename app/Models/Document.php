@@ -27,6 +27,7 @@ class Document extends Model
         'valid_from',
         'valid_to',
         'created_by',
+        'folder_id',
     ];
 
     protected $casts = [
@@ -51,6 +52,11 @@ class Document extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function folder()
+    {
+        return $this->belongsTo(Folder::class);
     }
 
     public function histories()

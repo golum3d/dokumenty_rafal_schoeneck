@@ -3,6 +3,7 @@
 use App\Http\Controllers\DocumentCategoryController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentStatusController;
+use App\Http\Controllers\FolderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -47,6 +48,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/documents/{document}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
         Route::get('/documents/{document}/file', [DocumentController::class, 'file'])->name('documents.file');
         Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+
+        Route::post('/folders', [FolderController::class, 'store'])->name('folders.store');
+        Route::put('/folders/{folder}', [FolderController::class, 'update'])->name('folders.update');
+        Route::delete('/folders/{folder}', [FolderController::class, 'destroy'])->name('folders.destroy');
     });
 
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');

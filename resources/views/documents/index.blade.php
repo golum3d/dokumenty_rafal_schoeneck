@@ -16,50 +16,152 @@
                 <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ __('documents.module_title') }}</h1>
                 <p class="mt-2 text-sm text-slate-600">{{ __('documents.module_description') }}</p>
             </div>
-            <a href="{{ route('documents.create') }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">{{ __('documents.buttons.create') }}</a>
+            <div class="flex gap-3">
+                <button onclick="openFolderModal({})" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.create_folder') }}</button>
+                <a href="{{ route('documents.create') }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">{{ __('documents.buttons.create') }}</a>
+            </div>
         </div>
 
-        <div class="grid gap-4 xl:grid-cols-2">
-            @forelse($documents as $document)
-                <article class="rounded-[2rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <p class="text-sm uppercase tracking-[0.28em] text-slate-500">{{ $document->category }}</p>
-                            <h2 class="mt-2 text-xl font-semibold text-slate-950">{{ $document->title }}</h2>
-                            <p class="mt-2 text-sm text-slate-600">{{ __('documents.fields.document_number') }}: <span class="font-medium text-slate-900">{{ $document->document_number }}</span></p>
-                        </div>
-                        <span class="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white">{{ $document->status }}</span>
-                    </div>
+        <div class="rounded-[2rem] bg-white shadow-xl ring-1 ring-slate-200">
+            <div class="divide-y divide-slate-200">
+                {{-- Render folders and documents recursively --}}
+                @forelse($folders as $folder)
+                    @include('documents.partials._folder-item', ['folder' => $folder, 'level' => 0])
+                @empty
+                @endforelse
 
-                    <div class="mt-6 grid gap-3 sm:grid-cols-2">
-                        <div class="rounded-2xl bg-white p-4 text-sm text-slate-600 shadow-sm">
-                            <p class="text-slate-500">{{ __('documents.fields.system_identifier') }}</p>
-                            <p class="mt-2 font-medium text-slate-900">{{ $document->system_identifier }}</p>
+                {{-- Documents without folder --}}
+                @forelse($documents as $document)
+                    @include('documents.partials._document-item', ['document' => $document, 'level' => 0])
+                @empty
+                    @if($folders->isEmpty())
+                        <div class="px-6 py-10 text-center text-slate-600">
+                            {{ __('documents.empty') }}
                         </div>
-                        <div class="rounded-2xl bg-white p-4 text-sm text-slate-600 shadow-sm">
-                            <p class="text-slate-500">{{ __('documents.fields.active') }}</p>
-                            <p class="mt-2 font-medium text-slate-900">{{ $document->active ? 'Tak' : 'Nie' }}</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
-                        <p>{{ __('documents.fields.created_at') }}: {{ $document->created_at->format('Y-m-d') }}</p>
-                        <p>{{ __('documents.fields.created_by') }}: {{ $document->creator?->name ?? '—' }}</p>
-                    </div>
-
-                    <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <a href="{{ route('documents.preview', $document) }}" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.preview') }}</a>
-                        <div class="flex flex-wrap gap-3">
-                            <a href="{{ route('documents.download', $document) }}" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.download') }}</a>
-                            <a href="{{ route('documents.edit', $document) }}" class="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">{{ __('documents.buttons.edit_document') }}</a>
-                        </div>
-                    </div>
-                </article>
-            @empty
-                <div class="rounded-[2rem] border border-slate-200 bg-white p-10 text-center text-slate-600 shadow-sm">
-                    {{ __('documents.empty') }}
-                </div>
-            @endforelse
+                    @endif
+                @endforelse
+            </div>
         </div>
     </div>
+
+    <!-- Create Folder Modal -->
+    <div id="folderModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 class="text-xl font-semibold text-slate-950" id="folderModalTitle">{{ __('documents.new_folder') }}</h2>
+            <form id="folderForm" class="mt-4 space-y-4">
+                <input type="hidden" id="folderId" />
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.name') }}</label>
+                    <input
+                        type="text"
+                        id="folderName"
+                        class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                        required
+                    />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.parent') }}</label>
+                    <select
+                        id="folderParent"
+                        class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                    >
+                        <option value="">{{ __('documents.no_folder') }}</option>
+                        @foreach($allFolders as $parentFolder)
+                            <option value="{{ $parentFolder->id }}">{{ $parentFolder->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeFolderModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-900 hover:bg-slate-100">
+                        {{ __('documents.buttons.cancel') }}
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700" id="folderSubmitButton">
+                        {{ __('documents.buttons.create') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openFolderModal(options = {}) {
+            document.getElementById('folderModal').classList.remove('hidden');
+            document.getElementById('folderName').value = options.name || '';
+            document.getElementById('folderParent').value = options.parent_id || '';
+            document.getElementById('folderId').value = options.id || '';
+            document.getElementById('folderModalTitle').textContent = options.isEdit ? '{{ __('documents.edit_folder') }}' : '{{ __('documents.new_folder') }}';
+            document.getElementById('folderSubmitButton').textContent = options.isEdit ? '{{ __('documents.buttons.save') }}' : '{{ __('documents.buttons.create') }}';
+            document.getElementById('folderName').focus();
+        }
+
+        function closeFolderModal() {
+            document.getElementById('folderModal').classList.add('hidden');
+            document.getElementById('folderName').value = '';
+            document.getElementById('folderId').value = '';
+            document.getElementById('folderParent').value = '';
+            document.getElementById('folderModalTitle').textContent = '{{ __('documents.new_folder') }}';
+            document.getElementById('folderSubmitButton').textContent = '{{ __('documents.buttons.create') }}';
+        }
+
+        document.getElementById('folderForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('folderName').value;
+            const parentId = document.getElementById('folderParent').value || null;
+            const folderId = document.getElementById('folderId').value;
+
+            const payload = { name, parent_id: parentId };
+            const url = folderId ? `/folders/${folderId}` : '{{ route("folders.store") }}';
+            const method = folderId ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Wystąpił błąd.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        function deleteFolder(folderId) {
+            if (confirm('{{ __("documents.confirm_delete_folder") }}')) {
+                fetch(`/folders/${folderId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        alert('{{ __("documents.folder_not_empty") }}');
+                    }
+                });
+            }
+        }
+
+        function toggleFolder(folderId) {
+            const content = document.getElementById(`folder-content-${folderId}`);
+            const toggle = document.getElementById(`folder-toggle-${folderId}`);
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                toggle.innerHTML = '▼';
+            } else {
+                content.classList.add('hidden');
+                toggle.innerHTML = '▶';
+            }
+        }
+    </script>
 @endsection
