@@ -11,10 +11,9 @@
          ondrop="onDrop(event)"
          data-folder-id="{{ $folder->id }}"
          onclick="toggleFolder({{ $folder->id }})">
-        <span id="folder-toggle-{{ $folder->id }}" class="text-slate-500 font-bold w-4">{{ $folder->children->count() > 0 || $folder->documents->count() > 0 ? '▼' : '•' }}</span>
-        <svg class="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
-        </svg>
+        <span id="folder-toggle-{{ $folder->id }}" class="text-slate-500 font-bold w-4">
+            <i id="folder-icon-{{ $folder->id }}" class="fa-regular fa-folder-open text-slate-600"></i>
+        </span>
         <div class="flex-1">
             <p class="text-sm font-medium text-slate-900">{{ $folder->name }}</p>
             <p class="text-xs text-slate-500">{{ $folder->documents->count() }} {{ __('documents.documents') }}</p>

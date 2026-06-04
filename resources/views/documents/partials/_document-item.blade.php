@@ -5,9 +5,7 @@
          data-drag-id="{{ $document->id }}"
          ondragstart="onDragStart(event)"
          ondragend="onDragEnd(event)">
-        <svg class="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M8 16.5a1 1 0 11-2 0 1 1 0 012 0zM15 7H4.458c-.133 0-.263.044-.371.125L2.567 8.99a.5.5 0 00.048.65l1.414 1.414a.5.5 0 00.707 0l1.414-1.414a.5.5 0 00-.707-.707L5.378 9h9.122a2 2 0 012 2v2a2 2 0 01-2 2H5v2a2 2 0 102 2h10a2 2 0 002-2V9a2 2 0 00-2-2z"></path>
-        </svg>
+        <i class="fa-regular fa-file-pdf text-slate-600 text-lg"></i>
         <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-slate-900 truncate">{{ $document->title }}</p>
             <p class="text-xs text-slate-500">{{ $document->category }} • {{ $document->status }}</p>

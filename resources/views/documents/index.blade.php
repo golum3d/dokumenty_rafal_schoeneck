@@ -247,14 +247,16 @@
 
         function toggleFolder(folderId) {
             const content = document.getElementById(`folder-content-${folderId}`);
-            const toggle = document.getElementById(`folder-toggle-${folderId}`);
-            
+            const icon = document.getElementById(`folder-icon-${folderId}`);
+
             if (content.classList.contains('hidden')) {
                 content.classList.remove('hidden');
-                toggle.innerHTML = '▼';
+                icon.classList.remove('fa-folder');
+                icon.classList.add('fa-folder-open');
             } else {
                 content.classList.add('hidden');
-                toggle.innerHTML = '▶';
+                icon.classList.remove('fa-folder-open');
+                icon.classList.add('fa-folder');
             }
         }
     </script>
