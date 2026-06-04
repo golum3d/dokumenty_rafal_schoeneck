@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Document;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,6 +43,14 @@ class WebAuthController extends Controller
 
     public function dashboard()
     {
-        return view('dashboard');
+        $userId = Auth::id();
+        $recentDocuments = Document::where('created_by', $userId)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('dashboard', [
+            'recentDocuments' => $recentDocuments,
+        ]);
     }
 }
