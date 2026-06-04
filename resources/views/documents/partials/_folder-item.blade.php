@@ -1,5 +1,6 @@
 <div class="border-b border-slate-200 last:border-b-0">
-    <div class="flex items-center gap-3 px-6 py-4 hover:bg-slate-50 cursor-pointer"
+        <div class="flex items-center gap-3 px-6 py-4 hover:bg-slate-50 cursor-pointer"
+            style="margin-left: {{ ($level ?? 0) * 24 }}px;"
          draggable="true"
          data-drag-type="folder"
          data-drag-id="{{ $folder->id }}"
@@ -37,7 +38,8 @@
         </div>
     </div>
 
-    <div id="folder-content-{{ $folder->id }}" class="bg-slate-50 drop-target"
+        <div id="folder-content-{{ $folder->id }}" class="bg-slate-50 drop-target"
+            style="margin-left: {{ (($level ?? 0) + 1) * 24 }}px;"
          ondragover="onDragOver(event)"
          ondragleave="onDragLeave(event)"
          ondrop="onDrop(event)"
