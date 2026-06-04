@@ -12,5 +12,7 @@ return [
         'save' => 'Save changes',
         'cancel' => 'Cancel',
         'add' => 'Add category',
+        'edit' => 'Edit',
+        'delete' => 'Delete',
     ],
 ];

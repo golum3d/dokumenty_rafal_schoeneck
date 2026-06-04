@@ -23,6 +23,7 @@ return [
     'choose_category' => 'Wybierz kategorię',
     'choose_status' => 'Wybierz status',
     'empty' => 'Brak dokumentów w bazie. Dodaj pierwszy dokument za pomocą przycisku powyżej.',
+    'unknown_user' => 'Nieznany użytkownik',
     'no_categories' => 'Brak kategorii. Dodaj kategorię w panelu administratora.',
     'no_statuses' => 'Brak statusów. Dodaj status w panelu administratora.',
     'buttons' => [

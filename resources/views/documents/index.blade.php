@@ -43,8 +43,8 @@
                     </div>
 
                     <div class="mt-6 grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
-                        <p>Utworzono: {{ $document->created_at->format('Y-m-d') }}</p>
-                        <p>Autor: {{ $document->creator?->name ?? '—' }}</p>
+                        <p>{{ __('documents.fields.created_at') }}: {{ $document->created_at->format('Y-m-d') }}</p>
+                        <p>{{ __('documents.fields.created_by') }}: {{ $document->creator?->name ?? '—' }}</p>
                     </div>
 
                     <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

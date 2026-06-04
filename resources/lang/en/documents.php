@@ -23,6 +23,7 @@ return [
     'choose_category' => 'Choose a category',
     'choose_status' => 'Choose a status',
     'empty' => 'No documents yet. Add your first document using the button above.',
+    'unknown_user' => 'Unknown user',
     'no_categories' => 'No categories. Add one in the administrator panel.',
     'no_statuses' => 'No statuses. Add one in the administrator panel.',
     'buttons' => [

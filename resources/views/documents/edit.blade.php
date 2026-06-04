@@ -12,8 +12,8 @@
             </div>
 
             <div class="mb-6 flex flex-wrap gap-3">
-                <a href="{{ route('documents.preview', $document) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">Podgląd PDF</a>
-                <a href="{{ route('documents.download', $document) }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">Pobierz PDF</a>
+                <a href="{{ route('documents.preview', $document) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">{{ __('documents.buttons.preview') }}</a>
+                <a href="{{ route('documents.download', $document) }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.download') }}</a>
             </div>
 
             <form method="POST" action="{{ route('documents.update', $document) }}" enctype="multipart/form-data">
@@ -30,7 +30,7 @@
                         <div class="rounded-2xl bg-white p-5 shadow-sm">
                             <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-900">{{ $history->user?->name ?? 'Nieznany użytkownik' }}</p>
+                                    <p class="text-sm font-semibold text-slate-900">{{ $history->user?->name ?? __('documents.unknown_user') }}</p>
                                     <p class="text-sm text-slate-500">{{ $history->created_at->format('Y-m-d H:i') }}</p>
                                 </div>
                             </div>
@@ -41,10 +41,10 @@
                                         $fieldKey = 'documents.fields.' . $field;
                                     @endphp
                                     <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                                        <p class="font-semibold text-slate-900">{{ Lang::has($fieldKey) ? __($fieldKey) : ucfirst(str_replace('_', ' ', $field)) }}</p>
-                                        <p class="mt-2 text-slate-600">{{ __('documents.change_from') }} <span class="font-medium text-slate-900">{{ $change['old'] ?? '–' }}</span></p>
-                                        <p class="text-slate-600">{{ __('documents.change_to') }} <span class="font-medium text-slate-900">{{ $change['new'] ?? '–' }}</span></p>
-                                    </div>
+                                    <p class="font-semibold text-slate-900">{{ Lang::has($fieldKey) ? __($fieldKey) : ucfirst(str_replace('_', ' ', $field)) }}</p>
+                                    <p class="mt-2 text-slate-600">{{ __('documents.change_from') }} <span class="font-medium text-slate-900">{{ $change['old'] ?? '–' }}</span></p>
+                                    <p class="text-slate-600">{{ __('documents.change_to') }} <span class="font-medium text-slate-900">{{ $change['new'] ?? '–' }}</span></p>
+                                </div>
                                 @endforeach
                             </div>
                         </div>

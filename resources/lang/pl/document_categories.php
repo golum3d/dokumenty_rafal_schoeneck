@@ -13,5 +13,6 @@ return [
         'cancel' => 'Anuluj',
         'add' => 'Dodaj kategorię',
         'edit' => 'Edytuj',
+        'delete' => 'Usuń',
     ],
 ];
