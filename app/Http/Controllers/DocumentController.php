@@ -18,8 +18,7 @@ class DocumentController extends Controller
     {
         $userId = Auth::id();
         // Get root level folders and documents
-        $folders = Folder::where('user_id', $userId)
-            ->whereNull('parent_id')
+        $folders = Folder::whereNull('parent_id')
             ->with(['children', 'documents'])
             ->orderBy('name')
             ->get();

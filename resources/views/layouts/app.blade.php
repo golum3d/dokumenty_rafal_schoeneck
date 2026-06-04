@@ -18,16 +18,16 @@
 
                 @auth
                     <nav class="hidden items-center gap-4 sm:flex">
-                        <a href="{{ route('dashboard') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Dashboard</a>
+                        <a href="{{ route('dashboard') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Dashboard</a>
                         @if(auth()->user()->can('manage-documents'))
-                            <a href="{{ route('documents.index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Dokumenty</a>
+                            <a href="{{ route('documents.index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('documents.*') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Dokumenty</a>
                         @elseif(auth()->user()->hasRole(\App\Models\User::ROLE_USER))
-                            <a href="{{ route('documents.user_index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Dokumenty</a>
+                            <a href="{{ route('documents.user_index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('documents.user*') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Dokumenty</a>
                         @endif
                         @can('manage-users')
-                            <a href="{{ route('users.index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Użytkownicy</a>
-                            <a href="{{ route('documents.categories.index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Kategorie</a>
-                            <a href="{{ route('documents.statuses.index') }}" class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">Statusy</a>
+                            <a href="{{ route('users.index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('users.*') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Użytkownicy</a>
+                            <a href="{{ route('documents.categories.index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('documents.categories.*') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Kategorie</a>
+                            <a href="{{ route('documents.statuses.index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('documents.statuses.*') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Statusy</a>
                         @endcan
                     </nav>
 
