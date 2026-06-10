@@ -78,7 +78,7 @@
                         @endif
 
                         <div>
-                            <label class="block text-sm font-medium text-slate-700">Nazwa</label>
+                            <label class="block text-sm font-medium text-slate-700">Login</label>
                             <input
                                 type="text"
                                 name="name"
@@ -266,7 +266,7 @@
                             </button>
 
                             @if($editUser)
-                                <a href="{{ route('dashboard') }}" class="inline-flex justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
+                                <a href="{{ route('users.index') }}" class="inline-flex justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
                                     Anuluj edycję
                                 </a>
                             @endif
