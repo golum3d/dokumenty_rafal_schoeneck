@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::orderBy('name')->get();
+        $users = User::orderByRaw('LOWER(name) asc')->get();
 
         return view('users.index', [
             'users' => $users,
@@ -30,12 +30,12 @@ class UserController extends Controller
 
         User::create($data);
 
-        return redirect()->route('dashboard')->with('success', 'Nowy użytkownik został dodany.');
+        return redirect()->route('users.index')->with('success', 'Nowy użytkownik został dodany.');
     }
 
     public function edit(User $user)
     {
-        $users = User::orderBy('name')->get();
+        $users = User::orderByRaw('LOWER(name) asc')->get();
 
         return view('users.index', [
             'users' => $users,
@@ -59,6 +59,6 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('dashboard')->with('success', 'Dane użytkownika zostały zaktualizowane.');
+        return redirect()->route('users.index')->with('success', 'Dane użytkownika zostały zaktualizowane.');
     }
 }
