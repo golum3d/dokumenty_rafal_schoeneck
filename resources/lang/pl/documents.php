@@ -38,6 +38,9 @@ return [
     'folder_unauthorized' => 'Nie masz uprawnień do wybranego folderu.',
     'folder_moved' => 'Folder został przeniesiony.',
     'document_moved' => 'Dokument został przeniesiony.',
+    'document_deleted' => 'Dokument został usunięty.',
+    'document_delete_failed' => 'Nie udało się usunąć dokumentu.',
+    'confirm_delete_document' => 'Czy na pewno chcesz usunąć ten dokument?',
     'documents' => 'dokumenty',
     'buttons' => [
         'create' => 'Dodaj dokument',
@@ -47,6 +50,7 @@ return [
         'preview' => 'Podgląd PDF',
         'download' => 'Pobierz PDF',
         'edit_document' => 'Edytuj dokument',
+        'delete' => 'Usuń dokument',
     ],
     'fields' => [
         'title' => 'Tytuł dokumentu',

@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
         Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
         Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
+        Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
         Route::get('/documents/{document}/preview', [DocumentController::class, 'preview'])->name('documents.preview');
         Route::get('/documents/{document}/file', [DocumentController::class, 'file'])->name('documents.file');
         Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');

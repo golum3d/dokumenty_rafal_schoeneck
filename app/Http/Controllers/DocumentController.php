@@ -205,6 +205,24 @@ class DocumentController extends Controller
         return redirect()->route('documents.index')->with('success', 'Dokument został zaktualizowany.');
     }
 
+    public function destroy(Document $document)
+    {
+        if (! empty($document->file_path) && Storage::exists($document->file_path)) {
+            Storage::delete($document->file_path);
+        }
+
+        $document->delete();
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => __('documents.document_deleted'),
+            ]);
+        }
+
+        return redirect()->route('documents.index')->with('success', __('documents.document_deleted'));
+    }
+
     public function preview(Document $document)
     {
         return view('documents.preview', [

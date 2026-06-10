@@ -5,7 +5,7 @@
 @section('content')
     <div class="space-y-8">
         @if (session('success'))
-            <div class="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-900 shadow-sm">
+            <div id="documents-success-alert" class="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-900 shadow-sm">
                 {{ session('success') }}
             </div>
         @endif
@@ -88,6 +88,31 @@
     </div>
 
     <script>
+        const successAlertStorageKey = 'documents.success';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const storedSuccessMessage = sessionStorage.getItem(successAlertStorageKey);
+
+            if (!storedSuccessMessage || document.getElementById('documents-success-alert')) {
+                sessionStorage.removeItem(successAlertStorageKey);
+                return;
+            }
+
+            const wrapper = document.querySelector('.space-y-8');
+            if (!wrapper) {
+                sessionStorage.removeItem(successAlertStorageKey);
+                return;
+            }
+
+            const alert = document.createElement('div');
+            alert.id = 'documents-success-alert';
+            alert.className = 'rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-900 shadow-sm';
+            alert.textContent = storedSuccessMessage;
+
+            wrapper.prepend(alert);
+            sessionStorage.removeItem(successAlertStorageKey);
+        });
+
         function openFolderModal(options = {}) {
             document.getElementById('folderModal').classList.remove('hidden');
             document.getElementById('folderName').value = options.name || '';
@@ -240,6 +265,32 @@
                         window.location.reload();
                     } else {
                         alert('{{ __("documents.folder_not_empty") }}');
+                    }
+                });
+            }
+        }
+
+        function deleteDocument(event, documentId) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (confirm('{{ __("documents.confirm_delete_document") }}')) {
+                fetch(`/documents/${documentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                }).then(async response => {
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data?.message) {
+                            sessionStorage.setItem(successAlertStorageKey, data.message);
+                        }
+                        window.location.reload();
+                    } else {
+                        alert('{{ __("documents.document_delete_failed") }}');
                     }
                 });
             }
