@@ -1,4 +1,5 @@
 @csrf
+<input type="hidden" name="return_url" value="{{ old('return_url', $returnUrl ?? route('documents.index')) }}">
 
 <div class="space-y-5">
     <div>
@@ -141,6 +142,6 @@
         <button type="submit" class="inline-flex justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
             {{ $document->exists ? __('documents.buttons.save') : __('documents.buttons.create') }}
         </button>
-        <a href="{{ route('documents.index') }}" class="inline-flex justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.cancel') }}</a>
+        <a href="{{ old('return_url', $returnUrl ?? route('documents.index')) }}" class="inline-flex justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.cancel') }}</a>
     </div>
 </div>

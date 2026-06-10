@@ -41,6 +41,15 @@ return [
         'edit_document' => 'Edit document',
         'delete' => 'Delete document',
     ],
+    'filters' => [
+        'search' => 'Search',
+        'search_placeholder' => 'Search by title, number, description or filename',
+        'all_categories' => 'All categories',
+        'all_statuses' => 'All statuses',
+        'all_folders' => 'All folders',
+        'submit' => 'Filter',
+        'reset' => 'Clear filters',
+    ],
     'fields' => [
         'title' => 'Document title',
         'document_number' => 'Document number',
@@ -57,6 +66,7 @@ return [
         'created_by' => 'Author',
         'original_filename' => 'Original filename',
         'file_path' => 'File path',
+        'folder' => 'Folder',
         'folder_id' => 'Folder',
         'parent' => 'Parent folder',
         'name' => 'Name',

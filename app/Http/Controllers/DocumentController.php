@@ -7,34 +7,50 @@ use App\Models\DocumentCategory;
 use App\Models\DocumentHistory;
 use App\Models\DocumentStatus;
 use App\Models\Folder;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class DocumentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $userId = Auth::id();
-        // Get root level folders and documents
-        $folders = Folder::whereNull('parent_id')
-            ->with(['children', 'documents'])
-            ->orderBy('name')
-            ->get();
+        $filters = [
+            'search' => trim((string) $request->string('search')),
+            'category' => $request->string('category')->toString(),
+            'status' => $request->string('status')->toString(),
+            'folder_id' => $request->string('folder_id')->toString(),
+        ];
+        $hasActiveFilters = collect($filters)->contains(fn (string $value) => $value !== '');
 
-        // Get documents not in any folder
-        $documents = Document::where('folder_id', null)
-            ->with('creator')
+        $documentQuery = Document::query()->with('creator');
+        $this->applyDocumentFilters($documentQuery, $filters);
+
+        $documents = $documentQuery
             ->orderBy('created_at', 'desc')
             ->get();
 
         $allFolders = Folder::where('user_id', $userId)->orderBy('name')->get();
+        $selectedFolderId = $filters['folder_id'] !== '' && $filters['folder_id'] !== '__none__'
+            ? (int) $filters['folder_id']
+            : null;
+        [$folders, $rootDocuments] = $this->buildFilteredFolderTree($allFolders, $documents, $hasActiveFilters, $selectedFolderId);
+
+        $categories = DocumentCategory::orderBy('name')->get();
+        $statuses = DocumentStatus::orderBy('name')->get();
 
         return view('documents.index', [
             'folders' => $folders,
-            'documents' => $documents,
+            'documents' => $rootDocuments,
             'allFolders' => $allFolders,
+            'categories' => $categories,
+            'statuses' => $statuses,
+            'filters' => $filters,
         ]);
     }
 
@@ -95,6 +111,7 @@ class DocumentController extends Controller
             'categories' => DocumentCategory::orderBy('name')->get(),
             'statuses' => DocumentStatus::orderBy('name')->get(),
             'folders' => $folders,
+            'returnUrl' => $this->resolveReturnUrl(request()),
         ]);
     }
 
@@ -132,7 +149,8 @@ class DocumentController extends Controller
             'original_filename' => $pdf->getClientOriginalName(),
         ]);
 
-        return redirect()->route('documents.index')->with('success', 'Dokument został zapisany.');
+        return redirect($this->resolveReturnUrl($request))
+            ->with('success', 'Dokument został zapisany.');
     }
 
     public function edit(Document $document)
@@ -146,6 +164,7 @@ class DocumentController extends Controller
             'categories' => DocumentCategory::orderBy('name')->get(),
             'statuses' => DocumentStatus::orderBy('name')->get(),
             'folders' => $folders,
+            'returnUrl' => $this->resolveReturnUrl(request()),
         ]);
     }
 
@@ -202,7 +221,8 @@ class DocumentController extends Controller
             ]);
         }
 
-        return redirect()->route('documents.index')->with('success', 'Dokument został zaktualizowany.');
+        return redirect($this->resolveReturnUrl($request))
+            ->with('success', 'Dokument został zaktualizowany.');
     }
 
     public function destroy(Document $document)
@@ -352,5 +372,116 @@ class DocumentController extends Controller
         }
 
         return Folder::find($value)?->getFullPath();
+    }
+
+    protected function applyDocumentFilters(Builder $query, array $filters): void
+    {
+        $search = $filters['search'] ?? '';
+        $category = $filters['category'] ?? '';
+        $status = $filters['status'] ?? '';
+        $folderId = $filters['folder_id'] ?? '';
+
+        if ($search !== '') {
+            $query->where(function (Builder $searchQuery) use ($search) {
+                $searchQuery
+                    ->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('document_number', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%')
+                    ->orWhere('original_filename', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($category !== '') {
+            $query->where('category', $category);
+        }
+
+        if ($status !== '') {
+            $query->where('status', $status);
+        }
+
+        if ($folderId === '__none__') {
+            $query->whereNull('folder_id');
+        } elseif ($folderId !== '') {
+            $query->where('folder_id', $folderId);
+        }
+    }
+
+    protected function buildFilteredFolderTree(
+        Collection $allFolders,
+        Collection $documents,
+        bool $pruneEmptyFolders = true,
+        ?int $selectedFolderId = null
+    ): array
+    {
+        $folderMap = $allFolders
+            ->mapWithKeys(function (Folder $folder) {
+                $folder->setRelation('children', collect());
+                $folder->setRelation('documents', collect());
+
+                return [$folder->id => $folder];
+            });
+
+        $rootFolders = collect();
+        foreach ($folderMap as $folder) {
+            if ($folder->parent_id && $folderMap->has($folder->parent_id)) {
+                $folderMap->get($folder->parent_id)->children->push($folder);
+                continue;
+            }
+
+            $rootFolders->push($folder);
+        }
+
+        $rootDocuments = collect();
+        foreach ($documents as $document) {
+            if ($document->folder_id && $folderMap->has($document->folder_id)) {
+                $folderMap->get($document->folder_id)->documents->push($document);
+                continue;
+            }
+
+            $rootDocuments->push($document);
+        }
+
+        if (! $pruneEmptyFolders) {
+            return [$rootFolders->values(), $rootDocuments->values()];
+        }
+
+        $prunedFolders = $rootFolders
+            ->map(fn (Folder $folder) => $this->pruneEmptyFolders($folder, $selectedFolderId))
+            ->filter()
+            ->values();
+
+        return [$prunedFolders, $rootDocuments->values()];
+    }
+
+    protected function pruneEmptyFolders(Folder $folder, ?int $selectedFolderId = null): ?Folder
+    {
+        $children = $folder->children
+            ->map(fn (Folder $child) => $this->pruneEmptyFolders($child, $selectedFolderId))
+            ->filter()
+            ->values();
+
+        $folder->setRelation('children', $children);
+
+        if ($selectedFolderId !== null && $folder->id === $selectedFolderId) {
+            return $folder;
+        }
+
+        if ($folder->documents->isEmpty() && $children->isEmpty()) {
+            return null;
+        }
+
+        return $folder;
+    }
+
+    protected function resolveReturnUrl(Request $request): string
+    {
+        $returnUrl = (string) $request->input('return_url', $request->query('return_url', ''));
+        $documentsIndexUrl = route('documents.index');
+
+        if ($returnUrl !== '' && Str::startsWith($returnUrl, $documentsIndexUrl)) {
+            return $returnUrl;
+        }
+
+        return $documentsIndexUrl;
     }
 }

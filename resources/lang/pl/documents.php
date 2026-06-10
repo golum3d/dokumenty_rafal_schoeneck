@@ -54,6 +54,15 @@ return [
         'edit_document' => 'Edytuj dokument',
         'delete' => 'Usuń dokument',
     ],
+    'filters' => [
+        'search' => 'Wyszukiwanie',
+        'search_placeholder' => 'Szukaj po tytule, numerze, opisie lub nazwie pliku',
+        'all_categories' => 'Wszystkie kategorie',
+        'all_statuses' => 'Wszystkie statusy',
+        'all_folders' => 'Wszystkie foldery',
+        'submit' => 'Filtruj',
+        'reset' => 'Wyczyść filtry',
+    ],
     'fields' => [
         'title' => 'Tytuł dokumentu',
         'document_number' => 'Numer dokumentu',
