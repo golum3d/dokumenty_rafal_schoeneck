@@ -3,6 +3,8 @@
 return [
     'login_title' => 'Zaloguj się',
     'login_subtitle' => 'Wprowadź dane konta, aby kontynuować.',
+    'login' => 'Email lub nazwa użytkownika',
+    'login_required' => 'Email lub nazwa użytkownika są wymagane.',
     'email' => 'Email',
     'password' => 'Hasło',
     'remember_me' => 'Zapamiętaj mnie',

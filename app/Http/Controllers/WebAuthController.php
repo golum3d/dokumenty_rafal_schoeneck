@@ -16,14 +16,19 @@ class WebAuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'login' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        $loginField = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
+
+        if (! Auth::attempt([
+            $loginField => $credentials['login'],
+            'password' => $credentials['password'],
+        ], $request->boolean('remember'))) {
             return back()
-                ->withErrors(['email' => __('auth.failed')])
-                ->onlyInput('email');
+                ->withErrors(['login' => __('auth.failed')])
+                ->onlyInput('login');
         }
 
         $request->session()->regenerate();

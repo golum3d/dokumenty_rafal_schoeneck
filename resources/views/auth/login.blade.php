@@ -23,16 +23,16 @@
             @csrf
 
             <div>
-                <label class="block text-sm font-medium text-slate-700">{{ __('auth.email') }}</label>
+                <label class="block text-sm font-medium text-slate-700">{{ __('auth.login') }}</label>
                 <input
-                    type="email"
-                    name="email"
-                    value="{{ old('email') }}"
+                    type="text"
+                    name="login"
+                    value="{{ old('login') }}"
                     required
                     autofocus
                     class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                 />
-                <div class="mt-2 hidden text-sm text-rose-600" id="emailError"></div>
+                <div class="mt-2 hidden text-sm text-rose-600" id="loginError"></div>
             </div>
 
             <div>
@@ -61,40 +61,25 @@
 
     <script>
         const validationMessages = {
-            email: "{{ __('validation.email') }}",
-            email_format: "{{ __('validation.email_format') }}",
-            email_required: "{{ __('validation.email_required') }}",
+            login_required: "{{ __('auth.login_required') }}",
             password_required: "{{ __('validation.password_required') }}"
         };
 
         const form = document.getElementById('loginForm');
-        const emailInput = form.querySelector('input[name="email"]');
+        const loginInput = form.querySelector('input[name="login"]');
         const passwordInput = form.querySelector('input[name="password"]');
-        const emailError = document.getElementById('emailError');
+        const loginError = document.getElementById('loginError');
         const passwordError = document.getElementById('passwordError');
 
-        function validateEmail() {
-            emailError.classList.add('hidden');
-            
-            if (!emailInput.value) {
-                emailError.textContent = validationMessages.email_required;
-                emailError.classList.remove('hidden');
+        function validateLogin() {
+            loginError.classList.add('hidden');
+
+            if (!loginInput.value.trim()) {
+                loginError.textContent = validationMessages.login_required;
+                loginError.classList.remove('hidden');
                 return false;
             }
-            
-            if (!emailInput.value.includes('@')) {
-                emailError.textContent = validationMessages.email;
-                emailError.classList.remove('hidden');
-                return false;
-            }
-            
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(emailInput.value)) {
-                emailError.textContent = validationMessages.email_format;
-                emailError.classList.remove('hidden');
-                return false;
-            }
-            
+
             return true;
         }
 
@@ -110,15 +95,15 @@
             return true;
         }
 
-        emailInput.addEventListener('blur', validateEmail);
-        emailInput.addEventListener('change', validateEmail);
+        loginInput.addEventListener('blur', validateLogin);
+        loginInput.addEventListener('change', validateLogin);
         passwordInput.addEventListener('blur', validatePassword);
 
         form.addEventListener('submit', (e) => {
-            const isEmailValid = validateEmail();
+            const isLoginValid = validateLogin();
             const isPasswordValid = validatePassword();
             
-            if (!isEmailValid || !isPasswordValid) {
+            if (!isLoginValid || !isPasswordValid) {
                 e.preventDefault();
             }
         });

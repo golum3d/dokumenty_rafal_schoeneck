@@ -3,6 +3,8 @@
 return [
     'login_title' => 'Log in',
     'login_subtitle' => 'Enter your account details to continue.',
+    'login' => 'Email or username',
+    'login_required' => 'Email or username is required.',
     'email' => 'Email',
     'password' => 'Password',
     'remember_me' => 'Remember me',
