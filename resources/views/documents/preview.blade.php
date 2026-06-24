@@ -59,6 +59,32 @@
                                     </div>
                                 @endif
                             </div>
+
+                            @if($document->type === \App\Models\Document::TYPE_DOCUMENT && $document->derivedDocuments->isNotEmpty())
+                                <div class="mt-4">
+                                    <p class="text-xs text-slate-500">{{ __('documents.related_documents') }}</p>
+                                    <div class="mt-2 space-y-2">
+                                        @foreach($document->derivedDocuments as $relatedDocument)
+                                            @php
+                                                [$relatedBgClass, $relatedBorderClass, $relatedHoverClass] = match ($relatedDocument->type) {
+                                                    \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/80', 'border-amber-200', 'hover:bg-amber-100/80'],
+                                                    \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/80', 'border-rose-200', 'hover:bg-rose-100/80'],
+                                                    default => ['bg-white/70', 'border-slate-200', 'hover:bg-white'],
+                                                };
+                                            @endphp
+                                            <a href="{{ !empty($publicView) ? route('documents.preview_public', $relatedDocument) : route('documents.preview', $relatedDocument) }}" class="block rounded-xl border {{ $relatedBorderClass }} {{ $relatedBgClass }} px-3 py-2 transition {{ $relatedHoverClass }}">
+                                                <p class="text-sm font-medium text-slate-900">
+                                                    {{ $relatedDocument->title }}
+                                                    @if(!empty($relatedDocument->document_number))
+                                                        <span class="text-slate-500">({{ $relatedDocument->document_number }})</span>
+                                                    @endif
+                                                </p>
+                                                <p class="text-xs text-slate-500">{{ __('documents.types.' . $relatedDocument->type) }}</p>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 

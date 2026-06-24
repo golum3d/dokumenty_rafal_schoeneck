@@ -17,6 +17,11 @@
                     <p class="text-sm uppercase tracking-[0.3em] text-slate-500">{{ __('documents.edit_title') }}</p>
                     <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ $document->title }}</h1>
                     <p class="mt-2 text-sm text-slate-600">{{ __('documents.fields.system_identifier') }}: <span class="font-medium text-slate-900">{{ $document->system_identifier }}</span></p>
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        <a href="{{ route('documents.preview', $document) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">{{ __('documents.buttons.preview') }}</a>
+                        <a href="{{ route('documents.download', $document) }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.download') }}</a>
+                        <a href="{{ old('return_url', $returnUrl ?? route('documents.index')) }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.back') }}</a>
+                    </div>
                 </div>
 
                 <div class="min-w-[260px] rounded-[1.5rem] border {{ $metaBorderClass }} {{ $metaCardClass }} px-5 py-4">
@@ -53,13 +58,33 @@
                                 </p>
                             </div>
                         @endif
+                        @if($document->type === \App\Models\Document::TYPE_DOCUMENT && $document->derivedDocuments->isNotEmpty())
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ __('documents.related_documents') }}</p>
+                                <div class="mt-2 space-y-2">
+                                    @foreach($document->derivedDocuments as $relatedDocument)
+                                        @php
+                                            [$relatedBgClass, $relatedBorderClass, $relatedHoverClass] = match ($relatedDocument->type) {
+                                                \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/80', 'border-amber-200', 'hover:bg-amber-100/80'],
+                                                \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/80', 'border-rose-200', 'hover:bg-rose-100/80'],
+                                                default => ['bg-white/70', 'border-slate-200', 'hover:bg-white'],
+                                            };
+                                        @endphp
+                                        <a href="{{ route('documents.edit', ['document' => $relatedDocument, 'return_url' => url()->full()]) }}" class="block rounded-xl border {{ $relatedBorderClass }} {{ $relatedBgClass }} px-3 py-2 transition {{ $relatedHoverClass }}">
+                                            <p class="text-sm font-medium text-slate-900">
+                                                {{ $relatedDocument->title }}
+                                                @if(!empty($relatedDocument->document_number))
+                                                    <span class="text-slate-500">({{ $relatedDocument->document_number }})</span>
+                                                @endif
+                                            </p>
+                                            <p class="text-xs text-slate-500">{{ __('documents.types.' . $relatedDocument->type) }}</p>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
-            </div>
-
-            <div class="mb-6 flex flex-wrap gap-3">
-                <a href="{{ route('documents.preview', $document) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">{{ __('documents.buttons.preview') }}</a>
-                <a href="{{ route('documents.download', $document) }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.download') }}</a>
             </div>
 
             <form method="POST" action="{{ route('documents.update', $document) }}" enctype="multipart/form-data">

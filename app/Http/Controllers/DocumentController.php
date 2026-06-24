@@ -215,7 +215,12 @@ class DocumentController extends Controller
 
     public function edit(Document $document)
     {
-        $document->load('histories.user', 'creator', 'sourceDocument');
+        $document->load([
+            'histories.user',
+            'creator',
+            'sourceDocument',
+            'derivedDocuments' => fn ($query) => $query->orderBy('created_at', 'desc'),
+        ]);
         $userId = Auth::id();
         $folders = Folder::where('user_id', $userId)->orderBy('name')->get();
 
@@ -291,7 +296,10 @@ class DocumentController extends Controller
 
     public function preview(Document $document)
     {
-        $document->load('sourceDocument');
+        $document->load([
+            'sourceDocument',
+            'derivedDocuments' => fn ($query) => $query->orderBy('created_at', 'desc'),
+        ]);
 
         return view('documents.preview', [
             'document' => $document,
@@ -308,7 +316,10 @@ class DocumentController extends Controller
             abort(403);
         }
 
-        $document->load('sourceDocument');
+        $document->load([
+            'sourceDocument',
+            'derivedDocuments' => fn ($query) => $query->orderBy('created_at', 'desc'),
+        ]);
 
         return view('documents.preview', [
             'document' => $document,
