@@ -291,6 +291,8 @@ class DocumentController extends Controller
 
     public function preview(Document $document)
     {
+        $document->load('sourceDocument');
+
         return view('documents.preview', [
             'document' => $document,
             'publicView' => false,
@@ -305,6 +307,9 @@ class DocumentController extends Controller
         if (! $this->isVisibleToPublic($document)) {
             abort(403);
         }
+
+        $document->load('sourceDocument');
+
         return view('documents.preview', [
             'document' => $document,
             'publicView' => true,

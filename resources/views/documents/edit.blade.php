@@ -38,12 +38,21 @@
                             <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ __('documents.fields.type') }}</p>
                             <p class="mt-1 font-medium text-slate-900">{{ __('documents.types.' . $document->type) }}</p>
                         </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ __('documents.fields.source_document') }}</p>
-                            <p class="mt-1 font-medium text-slate-900">
-                                {{ $document->sourceDocument?->title ?? '—' }}
-                            </p>
-                        </div>
+                        @if($document->type !== \App\Models\Document::TYPE_DOCUMENT)
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ __('documents.fields.source_document') }}</p>
+                                <p class="mt-1 font-medium text-slate-900">
+                                    @if($document->sourceDocument)
+                                        {{ $document->sourceDocument->title }}
+                                        @if(!empty($document->sourceDocument->document_number))
+                                            <span class="text-slate-500">({{ $document->sourceDocument->document_number }})</span>
+                                        @endif
+                                    @else
+                                        —
+                                    @endif
+                                </p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

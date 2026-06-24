@@ -3,10 +3,17 @@
 @section('title', __('documents.preview_title'))
 
 @section('content')
+    @php
+        [$metaCardClass, $metaBorderClass] = match ($document->type) {
+            \App\Models\Document::TYPE_CHANGE => ['bg-amber-50', 'border-amber-200'],
+            \App\Models\Document::TYPE_REPEAL => ['bg-rose-50', 'border-rose-200'],
+            default => ['bg-slate-50', 'border-slate-100'],
+        };
+    @endphp
     <div class="space-y-8">
         <div class="rounded-[2rem] bg-white p-8 shadow-xl ring-1 ring-slate-200">
             <div class="mb-6">
-                <div class="w-full rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                <div class="w-full rounded-2xl border {{ $metaBorderClass }} {{ $metaCardClass }} p-6">
                     <p class="text-sm uppercase tracking-[0.3em] text-slate-500">{{ __('documents.preview_title') }}</p>
                     <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ $document->title }}</h1>
                     <p class="mt-2 text-sm text-slate-600">{{ __('documents.fields.document_number') }}: <span class="font-medium text-slate-900">{{ $document->document_number }}</span></p>
@@ -29,6 +36,29 @@
 
                             <p class="mt-3 text-xs text-slate-500">Plik</p>
                             <p class="font-medium text-slate-900">{{ $document->original_filename }}</p>
+
+                            <div class="mt-3 grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <p class="text-xs text-slate-500">{{ __('documents.fields.type') }}</p>
+                                    <p class="font-medium text-slate-900">{{ __('documents.types.' . $document->type) }}</p>
+                                </div>
+
+                                @if($document->type !== \App\Models\Document::TYPE_DOCUMENT)
+                                    <div>
+                                        <p class="text-xs text-slate-500">{{ __('documents.fields.source_document') }}</p>
+                                        <p class="font-medium text-slate-900">
+                                            @if($document->sourceDocument)
+                                                {{ $document->sourceDocument->title }}
+                                                @if(!empty($document->sourceDocument->document_number))
+                                                    <span class="text-slate-500">({{ $document->sourceDocument->document_number }})</span>
+                                                @endif
+                                            @else
+                                                —
+                                            @endif
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
 
