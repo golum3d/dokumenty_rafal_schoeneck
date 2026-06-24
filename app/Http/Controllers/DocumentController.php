@@ -23,7 +23,6 @@ class DocumentController extends Controller
             return $this->publicIndex($request);
         }
 
-        $userId = Auth::id();
         $filters = [
             'search' => trim((string) $request->string('search')),
             'category' => $request->string('category')->toString(),
@@ -39,7 +38,7 @@ class DocumentController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $allFolders = Folder::where('user_id', $userId)->orderBy('name')->get();
+        $allFolders = Folder::orderBy('name')->get();
         $selectedFolderId = $filters['folder_id'] !== '' && $filters['folder_id'] !== '__none__'
             ? (int) $filters['folder_id']
             : null;
@@ -155,8 +154,7 @@ class DocumentController extends Controller
 
     public function create()
     {
-        $userId = Auth::id();
-        $folders = Folder::where('user_id', $userId)->orderBy('name')->get();
+        $folders = Folder::orderBy('name')->get();
         $sourceDocument = null;
         $type = request()->string('type')->toString();
 
@@ -226,8 +224,7 @@ class DocumentController extends Controller
             'sourceDocument',
             'derivedDocuments' => fn ($query) => $query->orderBy('created_at', 'desc'),
         ]);
-        $userId = Auth::id();
-        $folders = Folder::where('user_id', $userId)->orderBy('name')->get();
+        $folders = Folder::orderBy('name')->get();
 
         return view('documents.edit', [
             'document' => $document,
@@ -392,16 +389,6 @@ class DocumentController extends Controller
         $validated = $request->validate([
             'folder_id' => ['nullable', 'exists:folders,id'],
         ]);
-
-        if (! empty($validated['folder_id'])) {
-            $folder = Folder::where('id', $validated['folder_id'])
-                ->where('user_id', Auth::id())
-                ->first();
-
-            if (! $folder) {
-                return response()->json(['error' => __('documents.folder_unauthorized')], 403);
-            }
-        }
 
         $originalFolderId = $document->folder_id;
         $newFolderId = $validated['folder_id'] ?? null;
