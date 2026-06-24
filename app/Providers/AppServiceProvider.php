@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::define('manage-documents', function (User $user) {
-            return $user->isDocumentManager();
+            return $user->isDocumentManager() || $user->isAdmin();
         });
 
         Gate::define('manage-users', function (User $user) {

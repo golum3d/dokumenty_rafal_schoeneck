@@ -14,6 +14,10 @@ class Document extends Model
 {
     use HasFactory;
 
+    public const TYPE_DOCUMENT = 'document';
+    public const TYPE_CHANGE = 'change';
+    public const TYPE_REPEAL = 'repeal';
+
     protected $fillable = [
         'system_identifier',
         'title',
@@ -21,6 +25,8 @@ class Document extends Model
         'description',
         'category',
         'status',
+        'type',
+        'source_document_id',
         'active',
         'file_path',
         'original_filename',
@@ -35,6 +41,15 @@ class Document extends Model
         'valid_from' => 'date',
         'valid_to' => 'date',
     ];
+
+    public static function types(): array
+    {
+        return [
+            self::TYPE_DOCUMENT,
+            self::TYPE_CHANGE,
+            self::TYPE_REPEAL,
+        ];
+    }
 
     protected static function booted()
     {
@@ -62,5 +77,15 @@ class Document extends Model
     public function histories()
     {
         return $this->hasMany(DocumentHistory::class)->orderBy('created_at', 'desc');
+    }
+
+    public function sourceDocument()
+    {
+        return $this->belongsTo(self::class, 'source_document_id');
+    }
+
+    public function derivedDocuments()
+    {
+        return $this->hasMany(self::class, 'source_document_id');
     }
 }

@@ -152,57 +152,70 @@ class DocumentController extends Controller
     {
         $userId = Auth::id();
         $folders = Folder::where('user_id', $userId)->orderBy('name')->get();
+        $sourceDocument = null;
+        $type = request()->string('type')->toString();
+
+        if (! in_array($type, [Document::TYPE_CHANGE, Document::TYPE_REPEAL], true)) {
+            $type = Document::TYPE_DOCUMENT;
+        }
+
+        if ($type !== Document::TYPE_DOCUMENT && request()->filled('source_document_id')) {
+            $sourceDocument = Document::findOrFail((int) request('source_document_id'));
+        }
+
+        $document = new Document();
+
+        if ($sourceDocument) {
+            $document->fill([
+                'title' => $sourceDocument->title,
+                'document_number' => $sourceDocument->document_number,
+                'description' => $sourceDocument->description,
+                'category' => $sourceDocument->category,
+                'status' => $sourceDocument->status,
+                'valid_from' => $sourceDocument->valid_from,
+                'valid_to' => $sourceDocument->valid_to,
+                'active' => $sourceDocument->active,
+                'folder_id' => $sourceDocument->folder_id,
+                'type' => $type,
+                'source_document_id' => $sourceDocument->id,
+            ]);
+        } else {
+            $document->type = $type;
+        }
 
         return view('documents.create', [
-            'document' => new Document(),
+            'document' => $document,
             'categories' => DocumentCategory::orderBy('name')->get(),
             'statuses' => DocumentStatus::orderBy('name')->get(),
             'folders' => $folders,
             'returnUrl' => $this->resolveReturnUrl(request()),
+            'sourceDocument' => $sourceDocument,
         ]);
     }
 
     public function store(Request $request)
     {
-        $categoryNames = DocumentCategory::pluck('name')->all();
-        $statusNames = DocumentStatus::pluck('name')->all();
+        $type = $request->input('type', Document::TYPE_DOCUMENT);
+        $sourceDocumentId = $request->filled('source_document_id')
+            ? (int) $request->input('source_document_id')
+            : null;
+        $data = $this->validateDocumentData($request, $this->isPdfRequiredForRequest($type, $sourceDocumentId));
 
-        $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'document_number' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'category' => ['required', 'string', Rule::in($categoryNames)],
-            'status' => ['required', 'string', Rule::in($statusNames)],
-            'valid_from' => ['nullable', 'date'],
-            'valid_to' => ['nullable', 'date'],
-            'active' => ['boolean'],
-            'folder_id' => ['nullable', 'exists:folders,id'],
-            'pdf' => ['required', 'file', 'mimetypes:application/pdf', 'max:10240'],
-        ]);
+        $this->createDocument($data, $request, $type, $sourceDocumentId);
 
-        $data['active'] = $request->boolean('active');
-        $data['created_by'] = Auth::id();
-
-        $document = Document::create(array_merge($data, [
-            'file_path' => '',
-            'original_filename' => '',
-        ]));
-
-        $pdf = $request->file('pdf');
-        $path = $pdf->storeAs('documents', $document->system_identifier . '.pdf');
-
-        $document->update([
-            'file_path' => $path,
-            'original_filename' => $pdf->getClientOriginalName(),
-        ]);
+        $message = match ($type) {
+            Document::TYPE_CHANGE => __('documents.change_created'),
+            Document::TYPE_REPEAL => __('documents.repeal_created'),
+            default => __('documents.document_created'),
+        };
 
         return redirect($this->resolveReturnUrl($request))
-            ->with('success', 'Dokument został zapisany.');
+            ->with('success', $message);
     }
 
     public function edit(Document $document)
     {
-        $document->load('histories.user', 'creator');
+        $document->load('histories.user', 'creator', 'sourceDocument');
         $userId = Auth::id();
         $folders = Folder::where('user_id', $userId)->orderBy('name')->get();
 
@@ -217,21 +230,7 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
-        $categoryNames = DocumentCategory::pluck('name')->all();
-        $statusNames = DocumentStatus::pluck('name')->all();
-
-        $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'document_number' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'category' => ['required', 'string', Rule::in($categoryNames)],
-            'status' => ['required', 'string', Rule::in($statusNames)],
-            'valid_from' => ['nullable', 'date'],
-            'valid_to' => ['nullable', 'date'],
-            'active' => ['boolean'],
-            'folder_id' => ['nullable', 'exists:folders,id'],
-            'pdf' => ['nullable', 'file', 'mimetypes:application/pdf', 'max:10240'],
-        ]);
+        $data = $this->validateDocumentData($request, false);
 
         $data['active'] = $request->boolean('active');
 
@@ -410,15 +409,104 @@ class DocumentController extends Controller
 
     protected function formatHistoryValue(string $field, mixed $value): mixed
     {
-        if ($field !== 'folder_id') {
-            return $value;
+        if ($field === 'folder_id') {
+            if (empty($value)) {
+                return null;
+            }
+
+            return Folder::find($value)?->getFullPath();
         }
 
-        if (empty($value)) {
-            return null;
+        if ($field === 'type' && $value !== null) {
+            return __('documents.types.' . $value);
         }
 
-        return Folder::find($value)?->getFullPath();
+        if ($field === 'source_document_id') {
+            if (empty($value)) {
+                return null;
+            }
+
+            return Document::find($value)?->title;
+        }
+
+        return $value;
+    }
+
+    protected function validateDocumentData(Request $request, bool $pdfRequired): array
+    {
+        $categoryNames = DocumentCategory::pluck('name')->all();
+        $statusNames = DocumentStatus::pluck('name')->all();
+
+        return $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'document_number' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'category' => ['required', 'string', Rule::in($categoryNames)],
+            'status' => ['required', 'string', Rule::in($statusNames)],
+            'type' => ['nullable', 'string', Rule::in(Document::types())],
+            'source_document_id' => ['nullable', 'integer', 'exists:documents,id'],
+            'valid_from' => ['nullable', 'date'],
+            'valid_to' => ['nullable', 'date'],
+            'active' => ['boolean'],
+            'folder_id' => ['nullable', 'exists:folders,id'],
+            'pdf' => [$pdfRequired ? 'required' : 'nullable', 'file', 'mimetypes:application/pdf', 'max:10240'],
+        ]);
+    }
+
+    protected function isPdfRequiredForRequest(string $type, ?int $sourceDocumentId): bool
+    {
+        if ($type === Document::TYPE_DOCUMENT || empty($sourceDocumentId)) {
+            return true;
+        }
+
+        $sourceDocument = Document::find($sourceDocumentId);
+
+        return ! $sourceDocument || empty($sourceDocument->file_path);
+    }
+
+    protected function createDocument(array $data, Request $request, string $type, ?int $sourceDocumentId = null): Document
+    {
+        if (! in_array($type, Document::types(), true)) {
+            $type = Document::TYPE_DOCUMENT;
+        }
+
+        if ($type === Document::TYPE_DOCUMENT) {
+            $sourceDocumentId = null;
+        }
+
+        $document = Document::create(array_merge($data, [
+            'type' => $type,
+            'source_document_id' => $sourceDocumentId,
+            'active' => $request->boolean('active'),
+            'created_by' => Auth::id(),
+            'file_path' => '',
+            'original_filename' => '',
+        ]));
+
+        if ($request->hasFile('pdf')) {
+            $pdf = $request->file('pdf');
+            $path = $pdf->storeAs('documents', $document->system_identifier . '.pdf');
+
+            $document->update([
+                'file_path' => $path,
+                'original_filename' => $pdf->getClientOriginalName(),
+            ]);
+
+            return $document;
+        }
+
+        if ($sourceDocumentId !== null) {
+            $sourceDocument = Document::findOrFail($sourceDocumentId);
+            $path = 'documents/' . $document->system_identifier . '.pdf';
+            Storage::copy($sourceDocument->file_path, $path);
+
+            $document->update([
+                'file_path' => $path,
+                'original_filename' => $sourceDocument->original_filename,
+            ]);
+        }
+
+        return $document;
     }
 
     protected function applyDocumentFilters(Builder $query, array $filters): void

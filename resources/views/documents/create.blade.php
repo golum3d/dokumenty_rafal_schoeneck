@@ -10,6 +10,14 @@
                     <p class="text-sm uppercase tracking-[0.3em] text-slate-500">{{ __('documents.create_title') }}</p>
                     <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ __('documents.create_title') }}</h1>
                     <p class="mt-2 text-sm text-slate-600">{{ __('documents.module_description') }}</p>
+                    @if(($document->type ?? \App\Models\Document::TYPE_DOCUMENT) !== \App\Models\Document::TYPE_DOCUMENT)
+                        <p class="mt-2 text-sm text-slate-600">
+                            {{ __('documents.fields.type') }}: <span class="font-medium text-slate-900">{{ __('documents.types.' . $document->type) }}</span>
+                            @if(!empty($sourceDocument))
+                                | {{ __('documents.fields.source_document') }}: <span class="font-medium text-slate-900">{{ $sourceDocument->title }}</span>
+                            @endif
+                        </p>
+                    @endif
                 </div>
 
                 <div class="min-w-[260px] rounded-[1.5rem] border border-slate-200 bg-slate-50 px-5 py-4">

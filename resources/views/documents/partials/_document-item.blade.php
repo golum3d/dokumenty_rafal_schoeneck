@@ -1,5 +1,13 @@
-<div class="border-b border-slate-200 last:border-b-0" style="margin-left: {{ ($level ?? 0) * 24 }}px;">
-    <div class="flex items-center gap-3 px-6 py-4 hover:bg-slate-50"
+@php
+    [$rowClass, $hoverClass] = match ($document->type) {
+        \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/70', 'hover:bg-amber-100/70'],
+        \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/70', 'hover:bg-rose-100/70'],
+        default => ['bg-white', 'hover:bg-slate-50'],
+    };
+@endphp
+
+<div class="border-b border-slate-200 last:border-b-0 {{ $rowClass }}" style="margin-left: {{ ($level ?? 0) * 24 }}px;">
+    <div class="flex items-center gap-3 px-6 py-4 transition-colors {{ $hoverClass }}"
          @if($canManageDocuments)
              draggable="true"
              data-drag-type="document"

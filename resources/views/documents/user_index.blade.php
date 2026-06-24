@@ -35,7 +35,14 @@
 
                             <div class="space-y-3">
                                 @foreach($folder->documents as $document)
-                                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                                    @php
+                                        [$cardBgClass, $cardBorderClass] = match ($document->type) {
+                                            \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/70', 'border-amber-200'],
+                                            \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/70', 'border-rose-200'],
+                                            default => ['bg-slate-50', 'border-slate-200'],
+                                        };
+                                    @endphp
+                                    <div class="rounded-3xl border {{ $cardBorderClass }} {{ $cardBgClass }} p-4 shadow-sm">
                                         <div class="flex items-center justify-between gap-4">
                                             <div>
                                                 <p class="text-sm font-semibold text-slate-900">{{ $document->title }}</p>
@@ -63,7 +70,14 @@
 
                             <div class="space-y-3">
                                 @foreach($noFolderDocuments as $document)
-                                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                                    @php
+                                        [$cardBgClass, $cardBorderClass] = match ($document->type) {
+                                            \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/70', 'border-amber-200'],
+                                            \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/70', 'border-rose-200'],
+                                            default => ['bg-slate-50', 'border-slate-200'],
+                                        };
+                                    @endphp
+                                    <div class="rounded-3xl border {{ $cardBorderClass }} {{ $cardBgClass }} p-4 shadow-sm">
                                         <div class="flex items-center justify-between gap-4">
                                             <div>
                                                 <p class="text-sm font-semibold text-slate-900">{{ $document->title }}</p>

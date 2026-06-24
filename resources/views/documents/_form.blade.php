@@ -1,5 +1,15 @@
 @csrf
 <input type="hidden" name="return_url" value="{{ old('return_url', $returnUrl ?? route('documents.index')) }}">
+<input type="hidden" name="type" value="{{ old('type', $document->type ?: \App\Models\Document::TYPE_DOCUMENT) }}">
+<input type="hidden" name="source_document_id" value="{{ old('source_document_id', $document->source_document_id) }}">
+@php
+    $currentType = old('type', $document->type ?: \App\Models\Document::TYPE_DOCUMENT);
+    $currentSourceDocumentId = old('source_document_id', $document->source_document_id);
+    $usesSourceFileByDefault = ! $document->exists
+        && $currentType !== \App\Models\Document::TYPE_DOCUMENT
+        && ! empty($currentSourceDocumentId)
+        && ! empty($sourceDocument?->original_filename);
+@endphp
 
 <div class="space-y-5">
     <div>
@@ -123,9 +133,12 @@
                 name="pdf"
                 accept="application/pdf"
                 class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                {{ $document->exists ? '' : 'required' }}
+                {{ ! $document->exists && ! $usesSourceFileByDefault ? 'required' : '' }}
             />
             @error('pdf')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+            @if($usesSourceFileByDefault)
+                <p class="mt-2 text-sm text-slate-500">{{ __('documents.default_source_file', ['filename' => $sourceDocument->original_filename]) }}</p>
+            @endif
         </div>
 
         <label class="inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
@@ -139,9 +152,21 @@
     @endif
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <button type="submit" class="inline-flex justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
-            {{ $document->exists ? __('documents.buttons.save') : __('documents.buttons.create') }}
-        </button>
+        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <button type="submit" name="submit_action" value="save" class="inline-flex justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
+                {{ $document->exists ? __('documents.buttons.save') : __('documents.buttons.create') }}
+            </button>
+
+            @if($document->exists)
+                <a href="{{ route('documents.create', ['type' => \App\Models\Document::TYPE_CHANGE, 'source_document_id' => $document->id, 'return_url' => old('return_url', $returnUrl ?? route('documents.index'))]) }}" class="inline-flex justify-center rounded-2xl bg-amber-400 px-6 py-3 text-sm font-semibold text-amber-950 transition hover:bg-amber-300">
+                    {{ __('documents.buttons.create_change') }}
+                </a>
+                <a href="{{ route('documents.create', ['type' => \App\Models\Document::TYPE_REPEAL, 'source_document_id' => $document->id, 'return_url' => old('return_url', $returnUrl ?? route('documents.index'))]) }}" class="inline-flex justify-center rounded-2xl bg-rose-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-rose-500">
+                    {{ __('documents.buttons.create_repeal') }}
+                </a>
+            @endif
+        </div>
+
         <a href="{{ old('return_url', $returnUrl ?? route('documents.index')) }}" class="inline-flex justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">{{ __('documents.buttons.cancel') }}</a>
     </div>
 </div>
