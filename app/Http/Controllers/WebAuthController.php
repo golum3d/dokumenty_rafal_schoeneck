@@ -48,8 +48,17 @@ class WebAuthController extends Controller
 
     public function dashboard()
     {
-        $userId = Auth::id();
-        $recentDocuments = Document::where('created_at', '>=', now()->subDays(7))
+        $recentDocuments = Document::query()
+            ->when(! Auth::check(), function ($query) {
+                $query->where('active', true)
+                    ->where(function ($q) {
+                        $q->whereNull('valid_from')->orWhere('valid_from', '<=', now());
+                    })
+                    ->where(function ($q) {
+                        $q->whereNull('valid_to')->orWhere('valid_to', '>=', now());
+                    });
+            })
+            ->where('created_at', '>=', now()->subDays(7))
             ->orderBy('created_at', 'desc')
             ->get();
 

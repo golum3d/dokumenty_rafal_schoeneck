@@ -9,7 +9,11 @@
                 <div>
                     <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Panel użytkownika</p>
                     <h1 class="mt-3 text-3xl font-semibold text-slate-950">Witaj ponownie!</h1>
-                    <p class="mt-2 text-sm text-slate-600">Jesteś zalogowany jako <span class="font-medium text-slate-900">{{ auth()->user()->email }}</span>.</p>
+                    @auth
+                        <p class="mt-2 text-sm text-slate-600">Jesteś zalogowany jako <span class="font-medium text-slate-900">{{ auth()->user()->email }}</span>.</p>
+                    @else
+                        <p class="mt-2 text-sm text-slate-600">Przeglądasz publiczny widok dashboardu bez logowania.</p>
+                    @endauth
                 </div>
             </div>
         </section>

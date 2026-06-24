@@ -19,6 +19,10 @@ class DocumentController extends Controller
 {
     public function index(Request $request)
     {
+        if (! Auth::check() || ! Auth::user()->can('manage-documents')) {
+            return $this->publicIndex($request);
+        }
+
         $userId = Auth::id();
         $filters = [
             'search' => trim((string) $request->string('search')),
@@ -51,6 +55,49 @@ class DocumentController extends Controller
             'categories' => $categories,
             'statuses' => $statuses,
             'filters' => $filters,
+            'canManageDocuments' => true,
+        ]);
+    }
+
+    protected function publicIndex(Request $request)
+    {
+        $filters = [
+            'search' => trim((string) $request->string('search')),
+            'category' => $request->string('category')->toString(),
+            'status' => $request->string('status')->toString(),
+            'folder_id' => $request->string('folder_id')->toString(),
+        ];
+        $hasActiveFilters = collect($filters)->contains(fn (string $value) => $value !== '');
+
+        $documentQuery = Document::query()
+            ->where('active', true)
+            ->where(function ($q) {
+                $q->whereNull('valid_from')->orWhere('valid_from', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('valid_to')->orWhere('valid_to', '>=', now());
+            });
+
+        $this->applyDocumentFilters($documentQuery, $filters);
+
+        $documents = $documentQuery
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $allFolders = Folder::orderBy('name')->get();
+        $selectedFolderId = $filters['folder_id'] !== '' && $filters['folder_id'] !== '__none__'
+            ? (int) $filters['folder_id']
+            : null;
+        [$folders, $rootDocuments] = $this->buildFilteredFolderTree($allFolders, $documents, $hasActiveFilters, $selectedFolderId);
+
+        return view('documents.index', [
+            'folders' => $folders,
+            'documents' => $rootDocuments,
+            'allFolders' => $allFolders,
+            'categories' => DocumentCategory::orderBy('name')->get(),
+            'statuses' => DocumentStatus::orderBy('name')->get(),
+            'filters' => $filters,
+            'canManageDocuments' => false,
         ]);
     }
 

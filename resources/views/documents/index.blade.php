@@ -17,14 +17,16 @@
                     <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ __('documents.module_title') }}</h1>
                     <p class="mt-2 text-sm text-slate-600">{{ __('documents.module_description') }}</p>
                 </div>
-                <div class="flex flex-col gap-3 sm:flex-row">
-                    <button type="button" onclick="openFolderModal({})" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
-                        {{ __('documents.buttons.create_folder') }}
-                    </button>
-                    <a href="{{ route('documents.create', ['return_url' => url()->full()]) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
-                        {{ __('documents.buttons.create') }}
-                    </a>
-                </div>
+                @if($canManageDocuments)
+                    <div class="flex flex-col gap-3 sm:flex-row">
+                        <button type="button" onclick="openFolderModal({})" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
+                            {{ __('documents.buttons.create_folder') }}
+                        </button>
+                        <a href="{{ route('documents.create', ['return_url' => url()->full()]) }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
+                            {{ __('documents.buttons.create') }}
+                        </a>
+                    </div>
+                @endif
             </div>
 
             <div class="grid gap-4 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
@@ -91,11 +93,13 @@
             </div>
         </form>
 
-        <div id="rootDropZone" class="rounded-[2rem] bg-white shadow-xl ring-1 ring-slate-200 drop-target"
-             ondragover="onDragOver(event)"
-             ondragleave="onDragLeave(event)"
-             ondrop="onDrop(event)"
-             data-folder-id="">
+        <div id="rootDropZone" class="rounded-[2rem] bg-white shadow-xl ring-1 ring-slate-200 {{ $canManageDocuments ? 'drop-target' : '' }}"
+             @if($canManageDocuments)
+                 ondragover="onDragOver(event)"
+                 ondragleave="onDragLeave(event)"
+                 ondrop="onDrop(event)"
+                 data-folder-id=""
+             @endif>
             <div class="divide-y divide-slate-200">
                 {{-- Render folders and documents recursively --}}
                 @forelse($folders as $folder)
@@ -117,44 +121,46 @@
         </div>
     </div>
 
-    <!-- Create Folder Modal -->
-    <div id="folderModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h2 class="text-xl font-semibold text-slate-950" id="folderModalTitle">{{ __('documents.new_folder') }}</h2>
-            <form id="folderForm" class="mt-4 space-y-4">
-                <input type="hidden" id="folderId" />
-                <div>
-                    <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.name') }}</label>
-                    <input
-                        type="text"
-                        id="folderName"
-                        class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                        required
-                    />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.parent') }}</label>
-                    <select
-                        id="folderParent"
-                        class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                    >
-                        <option value="">{{ __('documents.no_folder') }}</option>
-                        @foreach($allFolders as $parentFolder)
-                            <option value="{{ $parentFolder->id }}">{{ $parentFolder->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex justify-end gap-3">
-                    <button type="button" onclick="closeFolderModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-900 hover:bg-slate-100">
-                        {{ __('documents.buttons.cancel') }}
-                    </button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700" id="folderSubmitButton">
-                        {{ __('documents.buttons.create_folder') }}
-                    </button>
-                </div>
-            </form>
+    @if($canManageDocuments)
+        <!-- Create Folder Modal -->
+        <div id="folderModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+                <h2 class="text-xl font-semibold text-slate-950" id="folderModalTitle">{{ __('documents.new_folder') }}</h2>
+                <form id="folderForm" class="mt-4 space-y-4">
+                    <input type="hidden" id="folderId" />
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.name') }}</label>
+                        <input
+                            type="text"
+                            id="folderName"
+                            class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">{{ __('documents.fields.parent') }}</label>
+                        <select
+                            id="folderParent"
+                            class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                        >
+                            <option value="">{{ __('documents.no_folder') }}</option>
+                            @foreach($allFolders as $parentFolder)
+                                <option value="{{ $parentFolder->id }}">{{ $parentFolder->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                        <button type="button" onclick="closeFolderModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-900 hover:bg-slate-100">
+                            {{ __('documents.buttons.cancel') }}
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700" id="folderSubmitButton">
+                            {{ __('documents.buttons.create_folder') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
+    @endif
 
     <script>
         const successAlertStorageKey = 'documents.success';
@@ -182,6 +188,7 @@
             sessionStorage.removeItem(successAlertStorageKey);
         });
 
+        @if($canManageDocuments)
         function openFolderModal(options = {}) {
             document.getElementById('folderModal').classList.remove('hidden');
             document.getElementById('folderName').value = options.name || '';
@@ -231,6 +238,7 @@
                 console.error('Error:', error);
             }
         });
+        @endif
 
         function onDragStart(event) {
             const target = event.currentTarget;

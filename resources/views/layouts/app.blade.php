@@ -16,27 +16,29 @@
                     {{ config('app.name', 'Laravel') }}
                 </a>
 
-                @auth
-                    <nav class="hidden items-center gap-4 sm:flex">
-                        <a href="{{ route('dashboard') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Dashboard</a>
-                        @if(auth()->user()->can('manage-documents'))
-                            <a href="{{ route('documents.index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('documents.*') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Dokumenty</a>
-                        @elseif(auth()->user()->hasRole(\App\Models\User::ROLE_USER))
-                            <a href="{{ route('documents.user_index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('documents.user*') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Dokumenty</a>
-                        @endif
+                <nav class="hidden items-center gap-4 sm:flex">
+                    <a href="{{ route('dashboard') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Dashboard</a>
+                    <a href="{{ route('documents.index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('documents.index') || request()->routeIs('documents.create') || request()->routeIs('documents.edit') || request()->routeIs('documents.preview') || request()->routeIs('documents.download') || request()->routeIs('documents.file') || request()->routeIs('documents.preview_public') || request()->routeIs('documents.download_public') || request()->routeIs('documents.file_public') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Dokumenty</a>
+                    @auth
                         @can('manage-users')
                             <a href="{{ route('users.index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('users.*') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Użytkownicy</a>
                             <a href="{{ route('documents.categories.index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('documents.categories.*') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Kategorie</a>
                             <a href="{{ route('documents.statuses.index') }}" class="rounded-full px-4 py-2 text-sm font-medium transition {{ request()->routeIs('documents.statuses.*') ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">Statusy</a>
                         @endcan
-                    </nav>
+                    @endauth
+                </nav>
 
+                @auth
                     <form method="POST" action="{{ route('logout') }}" class="flex items-center gap-3">
                         @csrf
                         <button type="submit" class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
                             Wyloguj
                         </button>
                     </form>
+                @else
+                    <a href="{{ route('login') }}" class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700">
+                        Zaloguj
+                    </a>
                 @endauth
             </div>
         </header>

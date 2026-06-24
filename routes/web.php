@@ -17,9 +17,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [WebAuthController::class, 'login']);
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [WebAuthController::class, 'dashboard'])->name('dashboard');
+Route::get('/dashboard', [WebAuthController::class, 'dashboard'])->name('dashboard');
+Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+Route::get('/user/documents/{document}/preview', [DocumentController::class, 'previewPublic'])->name('documents.preview_public');
+Route::get('/user/documents/{document}/download', [DocumentController::class, 'downloadPublic'])->name('documents.download_public');
+Route::get('/user/documents/{document}/file', [DocumentController::class, 'filePublic'])->name('documents.file_public');
 
+Route::middleware('auth')->group(function () {
     Route::middleware('can:manage-users')->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
@@ -40,7 +44,6 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('can:manage-documents')->group(function () {
-        Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
         Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
         Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
         Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
@@ -60,9 +63,6 @@ Route::middleware('auth')->group(function () {
 
     // Read-only documents access for regular users: list, preview and download
     Route::get('/user/documents', [DocumentController::class, 'userIndex'])->name('documents.user_index');
-    Route::get('/user/documents/{document}/preview', [DocumentController::class, 'previewPublic'])->name('documents.preview_public');
-    Route::get('/user/documents/{document}/download', [DocumentController::class, 'downloadPublic'])->name('documents.download_public');
-    Route::get('/user/documents/{document}/file', [DocumentController::class, 'filePublic'])->name('documents.file_public');
 
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 });
