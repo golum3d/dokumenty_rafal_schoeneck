@@ -32,7 +32,7 @@ class DocumentController extends Controller
         ];
         $hasActiveFilters = collect($filters)->contains(fn (string $value) => $value !== '');
 
-        $documentQuery = Document::query()->with('creator');
+        $documentQuery = Document::query()->with(['creator', 'sourceDocument']);
         $this->applyDocumentFilters($documentQuery, $filters);
 
         $documents = $documentQuery
@@ -69,7 +69,7 @@ class DocumentController extends Controller
         ];
         $hasActiveFilters = collect($filters)->contains(fn (string $value) => $value !== '');
 
-        $documentQuery = Document::query()
+        $documentQuery = Document::query()->with('sourceDocument')
             ->where('active', true)
             ->where(function ($q) {
                 $q->whereNull('valid_from')->orWhere('valid_from', '<=', now());
@@ -134,13 +134,18 @@ class DocumentController extends Controller
                     ->where(function ($q2) {
                         $q2->whereNull('valid_to')->orWhere('valid_to', '>=', now());
                     })
+                    ->with('sourceDocument')
                     ->orderBy('created_at', 'desc');
             }, 'children'])
             ->orderBy('name')
             ->get();
 
         // Documents without folder
-        $noFolderDocuments = (clone $visibleQuery)->whereNull('folder_id')->orderBy('created_at', 'desc')->get();
+        $noFolderDocuments = (clone $visibleQuery)
+            ->with('sourceDocument')
+            ->whereNull('folder_id')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('documents.user_index', [
             'folders' => $folders,

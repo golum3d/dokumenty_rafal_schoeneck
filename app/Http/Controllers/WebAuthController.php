@@ -49,6 +49,7 @@ class WebAuthController extends Controller
     public function dashboard()
     {
         $recentDocuments = Document::query()
+            ->with('sourceDocument')
             ->when(! Auth::check(), function ($query) {
                 $query->where('active', true)
                     ->where(function ($q) {
@@ -64,6 +65,7 @@ class WebAuthController extends Controller
 
         return view('dashboard', [
             'recentDocuments' => $recentDocuments,
+            'canManageDocuments' => Auth::check() && Auth::user()->can('manage-documents'),
         ]);
     }
 }

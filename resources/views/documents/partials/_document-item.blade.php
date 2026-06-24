@@ -19,6 +19,14 @@
         <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-slate-900 truncate">{{ $document->title }}</p>
             <p class="text-xs text-slate-500">{{ $document->document_number }} • {{ __('documents.types.' . $document->type) }} • {{ $document->category }} • {{ $document->status }}</p>
+            @if($document->type !== \App\Models\Document::TYPE_DOCUMENT && $document->sourceDocument)
+                <p class="mt-1 text-xs text-slate-500 line-clamp-1">
+                    Dotyczy: {{ $document->sourceDocument->title }}
+                    @if(!empty($document->sourceDocument->document_number))
+                        ({{ $document->sourceDocument->document_number }})
+                    @endif
+                </p>
+            @endif
             <p class="mt-1 text-xs text-slate-500 line-clamp-2">Opis: {{ $document->description }}</p>
         </div>
         <div class="flex gap-2 flex-shrink-0">
