@@ -25,6 +25,7 @@ class DocumentController extends Controller
 
         $filters = [
             'search' => trim((string) $request->string('search')),
+            'relation_state' => $request->string('relation_state')->toString(),
             'category' => $request->string('category')->toString(),
             'status' => $request->string('status')->toString(),
             'folder_id' => $request->string('folder_id')->toString(),
@@ -37,6 +38,7 @@ class DocumentController extends Controller
         $documents = $documentQuery
             ->orderBy('created_at', 'desc')
             ->get();
+        $documents = $this->filterDocumentsByRelationState($documents, $filters['relation_state']);
 
         $allFolders = Folder::orderBy('name')->get();
         $selectedFolderId = $filters['folder_id'] !== '' && $filters['folder_id'] !== '__none__'
@@ -53,6 +55,7 @@ class DocumentController extends Controller
             'allFolders' => $allFolders,
             'categories' => $categories,
             'statuses' => $statuses,
+            'relationStates' => $this->documentRelationStateOptions(),
             'filters' => $filters,
             'canManageDocuments' => true,
         ]);
@@ -62,6 +65,7 @@ class DocumentController extends Controller
     {
         $filters = [
             'search' => trim((string) $request->string('search')),
+            'relation_state' => $request->string('relation_state')->toString(),
             'category' => $request->string('category')->toString(),
             'status' => $request->string('status')->toString(),
             'folder_id' => $request->string('folder_id')->toString(),
@@ -82,6 +86,7 @@ class DocumentController extends Controller
         $documents = $documentQuery
             ->orderBy('created_at', 'desc')
             ->get();
+        $documents = $this->filterDocumentsByRelationState($documents, $filters['relation_state']);
 
         $allFolders = Folder::orderBy('name')->get();
         $selectedFolderId = $filters['folder_id'] !== '' && $filters['folder_id'] !== '__none__'
@@ -95,6 +100,7 @@ class DocumentController extends Controller
             'allFolders' => $allFolders,
             'categories' => DocumentCategory::orderBy('name')->get(),
             'statuses' => DocumentStatus::orderBy('name')->get(),
+            'relationStates' => $this->documentRelationStateOptions(),
             'filters' => $filters,
             'canManageDocuments' => false,
         ]);
@@ -103,10 +109,20 @@ class DocumentController extends Controller
     /**
      * Read-only list for regular users: active documents within valid range.
      */
-    public function userIndex()
+    public function userIndex(Request $request)
     {
-        // Base visible documents query
-        $visibleQuery = Document::where('active', true)
+        $filters = [
+            'search' => trim((string) $request->string('search')),
+            'relation_state' => $request->string('relation_state')->toString(),
+            'category' => $request->string('category')->toString(),
+            'status' => $request->string('status')->toString(),
+            'folder_id' => $request->string('folder_id')->toString(),
+        ];
+        $hasActiveFilters = collect($filters)->contains(fn (string $value) => $value !== '');
+
+        $documentQuery = Document::query()
+            ->with(['sourceDocument', 'latestDerivedDocument'])
+            ->where('active', true)
             ->where(function ($q) {
                 $q->whereNull('valid_from')->orWhere('valid_from', '<=', now());
             })
@@ -114,41 +130,27 @@ class DocumentController extends Controller
                 $q->whereNull('valid_to')->orWhere('valid_to', '>=', now());
             });
 
-        // Folders that contain visible documents (including nested)
-        $folders = Folder::whereHas('documents', function ($q) use ($visibleQuery) {
-                // apply same visibility constraints
-                $q->where('active', true)
-                    ->where(function ($q2) {
-                        $q2->whereNull('valid_from')->orWhere('valid_from', '<=', now());
-                    })
-                    ->where(function ($q2) {
-                        $q2->whereNull('valid_to')->orWhere('valid_to', '>=', now());
-                    });
-            })
-            ->with(['documents' => function ($q) {
-                $q->where('active', true)
-                    ->where(function ($q2) {
-                        $q2->whereNull('valid_from')->orWhere('valid_from', '<=', now());
-                    })
-                    ->where(function ($q2) {
-                        $q2->whereNull('valid_to')->orWhere('valid_to', '>=', now());
-                    })
-                    ->with(['sourceDocument', 'latestDerivedDocument'])
-                    ->orderBy('created_at', 'desc');
-            }, 'children'])
-            ->orderBy('name')
-            ->get();
+        $this->applyDocumentFilters($documentQuery, $filters);
 
-        // Documents without folder
-        $noFolderDocuments = (clone $visibleQuery)
-            ->with(['sourceDocument', 'latestDerivedDocument'])
-            ->whereNull('folder_id')
+        $documents = $documentQuery
             ->orderBy('created_at', 'desc')
             ->get();
+        $documents = $this->filterDocumentsByRelationState($documents, $filters['relation_state']);
+
+        $allFolders = Folder::orderBy('name')->get();
+        $selectedFolderId = $filters['folder_id'] !== '' && $filters['folder_id'] !== '__none__'
+            ? (int) $filters['folder_id']
+            : null;
+        [$folders, $noFolderDocuments] = $this->buildFilteredFolderTree($allFolders, $documents, $hasActiveFilters, $selectedFolderId);
 
         return view('documents.user_index', [
             'folders' => $folders,
             'noFolderDocuments' => $noFolderDocuments,
+            'allFolders' => $allFolders,
+            'categories' => DocumentCategory::orderBy('name')->get(),
+            'statuses' => DocumentStatus::orderBy('name')->get(),
+            'relationStates' => $this->documentRelationStateOptions(),
+            'filters' => $filters,
         ]);
     }
 
@@ -556,6 +558,26 @@ class DocumentController extends Controller
         } elseif ($folderId !== '') {
             $query->where('folder_id', $folderId);
         }
+    }
+
+    protected function filterDocumentsByRelationState(Collection $documents, string $relationState): Collection
+    {
+        if (! in_array($relationState, Document::relationStates(), true)) {
+            return $documents;
+        }
+
+        return $documents
+            ->filter(fn (Document $document) => $document->relationState() === $relationState)
+            ->values();
+    }
+
+    protected function documentRelationStateOptions(): array
+    {
+        return [
+            Document::RELATION_STATE_ACTIVE => __('documents.relation_states.active'),
+            Document::RELATION_STATE_CHANGED => __('documents.relation_states.changed'),
+            Document::RELATION_STATE_REPEALED => __('documents.relation_states.repealed'),
+        ];
     }
 
     protected function buildFilteredFolderTree(

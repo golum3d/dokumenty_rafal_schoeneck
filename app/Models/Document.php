@@ -17,6 +17,9 @@ class Document extends Model
     public const TYPE_DOCUMENT = 'document';
     public const TYPE_CHANGE = 'change';
     public const TYPE_REPEAL = 'repeal';
+    public const RELATION_STATE_ACTIVE = 'active';
+    public const RELATION_STATE_CHANGED = 'changed';
+    public const RELATION_STATE_REPEALED = 'repealed';
 
     protected $fillable = [
         'system_identifier',
@@ -48,6 +51,15 @@ class Document extends Model
             self::TYPE_DOCUMENT,
             self::TYPE_CHANGE,
             self::TYPE_REPEAL,
+        ];
+    }
+
+    public static function relationStates(): array
+    {
+        return [
+            self::RELATION_STATE_ACTIVE,
+            self::RELATION_STATE_CHANGED,
+            self::RELATION_STATE_REPEALED,
         ];
     }
 
@@ -103,5 +115,14 @@ class Document extends Model
         return in_array($latestDerivedDocument?->type, [self::TYPE_CHANGE, self::TYPE_REPEAL], true)
             ? $latestDerivedDocument->type
             : null;
+    }
+
+    public function relationState(): string
+    {
+        return match ($this->relationColorType()) {
+            self::TYPE_CHANGE => self::RELATION_STATE_CHANGED,
+            self::TYPE_REPEAL => self::RELATION_STATE_REPEALED,
+            default => self::RELATION_STATE_ACTIVE,
+        };
     }
 }

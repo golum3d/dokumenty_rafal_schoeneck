@@ -29,7 +29,7 @@
                 @endif
             </div>
 
-            <div class="grid gap-4 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
+            <div class="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(220px,0.8fr)]">
                 <div>
                     <label for="search" class="block text-sm font-medium text-slate-700">{{ __('documents.filters.search') }}</label>
                     <input
@@ -41,6 +41,22 @@
                         class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                     />
                 </div>
+                <div>
+                    <label for="relation_state" class="block text-sm font-medium text-slate-700">{{ __('documents.filters.relation_state') }}</label>
+                    <select
+                        id="relation_state"
+                        name="relation_state"
+                        class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                    >
+                        <option value="">{{ __('documents.filters.all_relation_states') }}</option>
+                        @foreach($relationStates as $relationStateValue => $relationStateLabel)
+                            <option value="{{ $relationStateValue }}" @selected(($filters['relation_state'] ?? '') === $relationStateValue)>{{ $relationStateLabel }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-4 grid gap-4 lg:grid-cols-3">
                 <div>
                     <label for="category" class="block text-sm font-medium text-slate-700">{{ __('documents.fields.category') }}</label>
                     <select

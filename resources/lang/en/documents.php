@@ -52,6 +52,8 @@ return [
     'filters' => [
         'search' => 'Search',
         'search_placeholder' => 'Search by title, number, description or filename',
+        'relation_state' => 'Document type',
+        'all_relation_states' => 'All document types',
         'all_categories' => 'All categories',
         'all_statuses' => 'All statuses',
         'all_folders' => 'All folders',
@@ -86,6 +88,11 @@ return [
         'document' => 'Document',
         'change' => 'Change',
         'repeal' => 'Repeal',
+    ],
+    'relation_states' => [
+        'active' => 'Active',
+        'changed' => 'Changed',
+        'repealed' => 'Repealed',
     ],
     'no_folder' => 'No folder',
     'new_folder' => 'New folder',

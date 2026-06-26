@@ -65,6 +65,8 @@ return [
     'filters' => [
         'search' => 'Wyszukiwanie',
         'search_placeholder' => 'Szukaj po tytule, numerze, opisie lub nazwie pliku',
+        'relation_state' => 'Typ dokumentu',
+        'all_relation_states' => 'Wszystkie typy dokumentu',
         'all_categories' => 'Wszystkie kategorie',
         'all_statuses' => 'Wszystkie statusy',
         'all_folders' => 'Wszystkie foldery',
@@ -99,5 +101,10 @@ return [
         'document' => 'Dokument',
         'change' => 'Zmiana',
         'repeal' => 'Uchylenie',
+    ],
+    'relation_states' => [
+        'active' => 'Aktywne',
+        'changed' => 'Zmienione',
+        'repealed' => 'Uchylone',
     ],
 ];

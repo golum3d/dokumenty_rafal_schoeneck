@@ -3,6 +3,13 @@
 @section('title', __('documents.module_title'))
 
 @section('content')
+    @php
+        $countFolderDocuments = function ($folders) use (&$countFolderDocuments) {
+            return $folders->sum(fn ($folder) => $folder->documents->count() + $countFolderDocuments($folder->children));
+        };
+
+        $visibleDocumentsCount = $countFolderDocuments($folders) + $noFolderDocuments->count();
+    @endphp
     <div class="space-y-8">
         <section class="rounded-[2rem] bg-white p-8 shadow-xl ring-1 ring-slate-200">
             <div class="flex items-center justify-between gap-4">
@@ -10,8 +17,89 @@
                     <p class="text-sm uppercase tracking-[0.24em] text-slate-500">Najnowsze ważne pliki</p>
                     <h2 class="mt-2 text-2xl font-semibold text-slate-950">Dostępne pliki</h2>
                 </div>
-                <span class="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700">{{ $folders->sum(function($f){ return $f->documents->count(); }) + $noFolderDocuments->count() }} plików</span>
+                <span class="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700">{{ $visibleDocumentsCount }} plików</span>
             </div>
+
+            <form method="GET" action="{{ route('documents.user_index') }}" class="mt-6 border-t border-slate-200 pt-5">
+                <div class="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(220px,0.8fr)]">
+                    <div>
+                        <label for="search" class="block text-sm font-medium text-slate-700">{{ __('documents.filters.search') }}</label>
+                        <input
+                            type="text"
+                            id="search"
+                            name="search"
+                            value="{{ $filters['search'] ?? '' }}"
+                            placeholder="{{ __('documents.filters.search_placeholder') }}"
+                            class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                        />
+                    </div>
+                    <div>
+                        <label for="relation_state" class="block text-sm font-medium text-slate-700">{{ __('documents.filters.relation_state') }}</label>
+                        <select
+                            id="relation_state"
+                            name="relation_state"
+                            class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                        >
+                            <option value="">{{ __('documents.filters.all_relation_states') }}</option>
+                            @foreach($relationStates as $relationStateValue => $relationStateLabel)
+                                <option value="{{ $relationStateValue }}" @selected(($filters['relation_state'] ?? '') === $relationStateValue)>{{ $relationStateLabel }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-4 grid gap-4 lg:grid-cols-3">
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-slate-700">{{ __('documents.fields.category') }}</label>
+                        <select
+                            id="category"
+                            name="category"
+                            class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                        >
+                            <option value="">{{ __('documents.filters.all_categories') }}</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->name }}" @selected(($filters['category'] ?? '') === $category->name)>{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-slate-700">{{ __('documents.fields.status') }}</label>
+                        <select
+                            id="status"
+                            name="status"
+                            class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                        >
+                            <option value="">{{ __('documents.filters.all_statuses') }}</option>
+                            @foreach($statuses as $status)
+                                <option value="{{ $status->name }}" @selected(($filters['status'] ?? '') === $status->name)>{{ $status->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="folder_id" class="block text-sm font-medium text-slate-700">{{ __('documents.fields.folder') }}</label>
+                        <select
+                            id="folder_id"
+                            name="folder_id"
+                            class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                        >
+                            <option value="">{{ __('documents.filters.all_folders') }}</option>
+                            <option value="__none__" @selected(($filters['folder_id'] ?? '') === '__none__')>{{ __('documents.no_folder') }}</option>
+                            @foreach($allFolders as $folder)
+                                <option value="{{ $folder->id }}" @selected((string) ($filters['folder_id'] ?? '') === (string) $folder->id)>{{ $folder->getFullPath() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-5 flex flex-wrap items-center gap-3">
+                    <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
+                        {{ __('documents.filters.submit') }}
+                    </button>
+                    <a href="{{ route('documents.user_index') }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
+                        {{ __('documents.filters.reset') }}
+                    </a>
+                </div>
+            </form>
 
             {{-- Debug info: helpful while troubleshooting empty lists --}}
             {{-- <div class="mt-3 text-sm text-slate-500">
@@ -27,55 +115,7 @@
             @else
                 <div class="mt-6 space-y-6">
                     @foreach($folders as $folder)
-                        <div>
-                            <div class="mb-3 flex items-center justify-between">
-                                <h3 class="text-lg font-semibold text-slate-900">{{ $folder->name }}</h3>
-                                <span class="text-sm text-slate-500">{{ $folder->documents->count() }} plików</span>
-                            </div>
-
-                            <div class="space-y-3">
-                                @foreach($folder->documents as $document)
-                                    @php
-                                        [$cardBgClass, $cardBorderClass] = match ($document->relationColorType()) {
-                                            \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/70', 'border-amber-200'],
-                                            \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/70', 'border-rose-200'],
-                                            default => ['bg-slate-50', 'border-slate-200'],
-                                        };
-                                    @endphp
-                                    <div class="rounded-3xl border {{ $cardBorderClass }} {{ $cardBgClass }} p-4 shadow-sm">
-                                        <div class="flex items-center justify-between gap-4">
-                                            <div>
-                                                <p class="text-sm font-semibold text-slate-900">{{ $document->title }}</p>
-                                                <p class="mt-1 text-sm text-slate-500">{{ $document->document_number }} • {{ __('documents.types.' . $document->type) }} • {{ $document->category }} • {{ $document->status }}</p>
-                                                @if($document->type !== \App\Models\Document::TYPE_DOCUMENT && $document->sourceDocument)
-                                                    <p class="mt-1 text-sm text-slate-500">
-                                                        Dotyczy: {{ $document->sourceDocument->title }}
-                                                        @if(!empty($document->sourceDocument->document_number))
-                                                            ({{ $document->sourceDocument->document_number }})
-                                                        @endif
-                                                    </p>
-                                                @endif
-                                                <p class="mt-1 text-sm text-slate-600">Opis: {{ $document->description }}</p>
-                                                <p class="mt-1 text-xs text-slate-500">Ważne: @if($document->valid_from) {{ $document->valid_from->format('d.m.Y') }} @else - @endif — @if($document->valid_to) {{ $document->valid_to->format('d.m.Y') }} @else - @endif</p>
-                                            </div>
-
-                                            <div class="flex gap-2 items-center">
-                                                <a href="{{ route('documents.preview_public', $document) }}" class="text-slate-500 hover:text-slate-700 p-2" aria-label="{{ __('documents.buttons.preview') }}">
-                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path d="M10 3C5 3 1.73 7.11.46 9.04a1.67 1.67 0 000 1.92C1.73 12.89 5 17 10 17s8.27-4.11 9.54-6.04a1.67 1.67 0 000-1.92C18.27 7.11 15 3 10 3zm0 11a4 4 0 110-8 4 4 0 010 8zm0-2.5A1.5 1.5 0 1010 8a1.5 1.5 0 000 3.5z"></path>
-                                                    </svg>
-                                                </a>
-                                                <a href="{{ route('documents.download_public', $document) }}" class="text-slate-500 hover:text-slate-700 p-2" aria-label="{{ __('documents.buttons.download') }}">
-                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                                    </svg>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
+                        @include('documents.partials._public-folder-section', ['folder' => $folder, 'level' => 0])
                     @endforeach
 
                     @if($noFolderDocuments->isNotEmpty())
@@ -87,44 +127,7 @@
 
                             <div class="space-y-3">
                                 @foreach($noFolderDocuments as $document)
-                                    @php
-                                        [$cardBgClass, $cardBorderClass] = match ($document->relationColorType()) {
-                                            \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/70', 'border-amber-200'],
-                                            \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/70', 'border-rose-200'],
-                                            default => ['bg-slate-50', 'border-slate-200'],
-                                        };
-                                    @endphp
-                                    <div class="rounded-3xl border {{ $cardBorderClass }} {{ $cardBgClass }} p-4 shadow-sm">
-                                        <div class="flex items-center justify-between gap-4">
-                                            <div>
-                                                <p class="text-sm font-semibold text-slate-900">{{ $document->title }}</p>
-                                                <p class="mt-1 text-sm text-slate-500">{{ $document->document_number }} • {{ __('documents.types.' . $document->type) }} • {{ $document->category }} • {{ $document->status }}</p>
-                                                @if($document->type !== \App\Models\Document::TYPE_DOCUMENT && $document->sourceDocument)
-                                                    <p class="mt-1 text-sm text-slate-500">
-                                                        Dotyczy: {{ $document->sourceDocument->title }}
-                                                        @if(!empty($document->sourceDocument->document_number))
-                                                            ({{ $document->sourceDocument->document_number }})
-                                                        @endif
-                                                    </p>
-                                                @endif
-                                                <p class="mt-1 text-sm text-slate-600">Opis: {{ $document->description }}</p>
-                                                <p class="mt-1 text-xs text-slate-500">Ważne: @if($document->valid_from) {{ $document->valid_from->format('d.m.Y') }} @else - @endif — @if($document->valid_to) {{ $document->valid_to->format('d.m.Y') }} @else - @endif</p>
-                                            </div>
-
-                                            <div class="flex gap-2 items-center">
-                                                <a href="{{ route('documents.preview_public', $document) }}" class="text-slate-500 hover:text-slate-700 p-2" aria-label="{{ __('documents.buttons.preview') }}">
-                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path d="M10 3C5 3 1.73 7.11.46 9.04a1.67 1.67 0 000 1.92C1.73 12.89 5 17 10 17s8.27-4.11 9.54-6.04a1.67 1.67 0 000-1.92C18.27 7.11 15 3 10 3zm0 11a4 4 0 110-8 4 4 0 010 8zm0-2.5A1.5 1.5 0 1010 8a1.5 1.5 0 000 3.5z"></path>
-                                                    </svg>
-                                                </a>
-                                                <a href="{{ route('documents.download_public', $document) }}" class="text-slate-500 hover:text-slate-700 p-2" aria-label="{{ __('documents.buttons.download') }}">
-                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                                    </svg>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    @include('documents.partials._public-document-card', ['document' => $document])
                                 @endforeach
                             </div>
                         </div>
