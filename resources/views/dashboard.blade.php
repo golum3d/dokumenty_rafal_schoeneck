@@ -35,7 +35,7 @@
                 <div class="mt-6 space-y-3">
                     @foreach($recentDocuments as $document)
                         @php
-                            [$cardBgClass, $cardBorderClass] = match ($document->type) {
+                            [$cardBgClass, $cardBorderClass] = match ($document->relationColorType()) {
                                 \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/70', 'border-amber-200'],
                                 \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/70', 'border-rose-200'],
                                 default => ['bg-slate-50', 'border-slate-200'],

@@ -49,7 +49,7 @@ class WebAuthController extends Controller
     public function dashboard()
     {
         $recentDocuments = Document::query()
-            ->with('sourceDocument')
+            ->with(['sourceDocument', 'latestDerivedDocument'])
             ->when(! Auth::check(), function ($query) {
                 $query->where('active', true)
                     ->where(function ($q) {

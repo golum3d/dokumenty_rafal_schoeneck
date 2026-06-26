@@ -88,4 +88,20 @@ class Document extends Model
     {
         return $this->hasMany(self::class, 'source_document_id');
     }
+
+    public function latestDerivedDocument()
+    {
+        return $this->hasOne(self::class, 'source_document_id')->latestOfMany('created_at');
+    }
+
+    public function relationColorType(): ?string
+    {
+        $latestDerivedDocument = $this->relationLoaded('latestDerivedDocument')
+            ? $this->getRelation('latestDerivedDocument')
+            : $this->latestDerivedDocument()->first();
+
+        return in_array($latestDerivedDocument?->type, [self::TYPE_CHANGE, self::TYPE_REPEAL], true)
+            ? $latestDerivedDocument->type
+            : null;
+    }
 }

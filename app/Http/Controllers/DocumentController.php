@@ -31,7 +31,7 @@ class DocumentController extends Controller
         ];
         $hasActiveFilters = collect($filters)->contains(fn (string $value) => $value !== '');
 
-        $documentQuery = Document::query()->with(['creator', 'sourceDocument']);
+        $documentQuery = Document::query()->with(['creator', 'sourceDocument', 'latestDerivedDocument']);
         $this->applyDocumentFilters($documentQuery, $filters);
 
         $documents = $documentQuery
@@ -68,7 +68,7 @@ class DocumentController extends Controller
         ];
         $hasActiveFilters = collect($filters)->contains(fn (string $value) => $value !== '');
 
-        $documentQuery = Document::query()->with('sourceDocument')
+        $documentQuery = Document::query()->with(['sourceDocument', 'latestDerivedDocument'])
             ->where('active', true)
             ->where(function ($q) {
                 $q->whereNull('valid_from')->orWhere('valid_from', '<=', now());
@@ -133,7 +133,7 @@ class DocumentController extends Controller
                     ->where(function ($q2) {
                         $q2->whereNull('valid_to')->orWhere('valid_to', '>=', now());
                     })
-                    ->with('sourceDocument')
+                    ->with(['sourceDocument', 'latestDerivedDocument'])
                     ->orderBy('created_at', 'desc');
             }, 'children'])
             ->orderBy('name')
@@ -141,7 +141,7 @@ class DocumentController extends Controller
 
         // Documents without folder
         $noFolderDocuments = (clone $visibleQuery)
-            ->with('sourceDocument')
+            ->with(['sourceDocument', 'latestDerivedDocument'])
             ->whereNull('folder_id')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -222,7 +222,10 @@ class DocumentController extends Controller
             'histories.user',
             'creator',
             'sourceDocument',
-            'derivedDocuments' => fn ($query) => $query->orderBy('created_at', 'desc'),
+            'latestDerivedDocument',
+            'derivedDocuments' => fn ($query) => $query
+                ->with('latestDerivedDocument')
+                ->orderBy('created_at', 'desc'),
         ]);
         $folders = Folder::orderBy('name')->get();
 
@@ -300,7 +303,10 @@ class DocumentController extends Controller
     {
         $document->load([
             'sourceDocument',
-            'derivedDocuments' => fn ($query) => $query->orderBy('created_at', 'desc'),
+            'latestDerivedDocument',
+            'derivedDocuments' => fn ($query) => $query
+                ->with('latestDerivedDocument')
+                ->orderBy('created_at', 'desc'),
         ]);
 
         return view('documents.preview', [
@@ -320,7 +326,10 @@ class DocumentController extends Controller
 
         $document->load([
             'sourceDocument',
-            'derivedDocuments' => fn ($query) => $query->orderBy('created_at', 'desc'),
+            'latestDerivedDocument',
+            'derivedDocuments' => fn ($query) => $query
+                ->with('latestDerivedDocument')
+                ->orderBy('created_at', 'desc'),
         ]);
 
         return view('documents.preview', [

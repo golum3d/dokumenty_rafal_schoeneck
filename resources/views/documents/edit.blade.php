@@ -4,7 +4,7 @@
 
 @section('content')
     @php
-        [$metaCardClass, $metaBorderClass] = match ($document->type) {
+        [$metaCardClass, $metaBorderClass] = match ($document->relationColorType()) {
             \App\Models\Document::TYPE_CHANGE => ['bg-amber-50', 'border-amber-200'],
             \App\Models\Document::TYPE_REPEAL => ['bg-rose-50', 'border-rose-200'],
             default => ['bg-slate-50', 'border-slate-200'],
@@ -64,7 +64,7 @@
                                 <div class="mt-2 space-y-2">
                                     @foreach($document->derivedDocuments as $relatedDocument)
                                         @php
-                                            [$relatedBgClass, $relatedBorderClass, $relatedHoverClass] = match ($relatedDocument->type) {
+                                            [$relatedBgClass, $relatedBorderClass, $relatedHoverClass] = match ($relatedDocument->relationColorType()) {
                                                 \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/80', 'border-amber-200', 'hover:bg-amber-100/80'],
                                                 \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/80', 'border-rose-200', 'hover:bg-rose-100/80'],
                                                 default => ['bg-white/70', 'border-slate-200', 'hover:bg-white'],
