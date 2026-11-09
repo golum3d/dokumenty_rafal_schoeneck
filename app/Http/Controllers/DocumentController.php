@@ -8,9 +8,10 @@ use App\Models\DocumentHistory;
 use App\Models\DocumentStatus;
 use App\Models\Folder;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -32,7 +33,7 @@ class DocumentController extends Controller
         ];
         $hasActiveFilters = collect($filters)->contains(fn (string $value) => $value !== '');
 
-        $documentQuery = Document::query()->with(['creator', 'sourceDocument', 'latestDerivedDocument']);
+        $documentQuery = Document::query()->with('creator');
         $this->applyDocumentFilters($documentQuery, $filters);
 
         $documents = $documentQuery
@@ -72,14 +73,7 @@ class DocumentController extends Controller
         ];
         $hasActiveFilters = collect($filters)->contains(fn (string $value) => $value !== '');
 
-        $documentQuery = Document::query()->with(['sourceDocument', 'latestDerivedDocument'])
-            ->where('active', true)
-            ->where(function ($q) {
-                $q->whereNull('valid_from')->orWhere('valid_from', '<=', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('valid_to')->orWhere('valid_to', '>=', now());
-            });
+        $documentQuery = Document::query();
 
         $this->applyDocumentFilters($documentQuery, $filters);
 
@@ -107,7 +101,7 @@ class DocumentController extends Controller
     }
 
     /**
-     * Read-only list for regular users: active documents within valid range.
+     * Read-only list of all documents for regular users.
      */
     public function userIndex(Request $request)
     {
@@ -120,15 +114,7 @@ class DocumentController extends Controller
         ];
         $hasActiveFilters = collect($filters)->contains(fn (string $value) => $value !== '');
 
-        $documentQuery = Document::query()
-            ->with(['sourceDocument', 'latestDerivedDocument'])
-            ->where('active', true)
-            ->where(function ($q) {
-                $q->whereNull('valid_from')->orWhere('valid_from', '<=', now());
-            })
-            ->where(function ($q) {
-                $q->whereNull('valid_to')->orWhere('valid_to', '>=', now());
-            });
+        $documentQuery = Document::query();
 
         $this->applyDocumentFilters($documentQuery, $filters);
 
@@ -168,7 +154,7 @@ class DocumentController extends Controller
             $sourceDocument = Document::findOrFail((int) request('source_document_id'));
         }
 
-        $document = new Document();
+        $document = new Document;
 
         if ($sourceDocument) {
             $document->fill([
@@ -206,7 +192,7 @@ class DocumentController extends Controller
             : null;
         $data = $this->validateDocumentData($request, $this->isPdfRequiredForRequest($type, $sourceDocumentId));
 
-        $this->createDocument($data, $request, $type, $sourceDocumentId);
+        DB::transaction(fn () => $this->createDocument($data, $request, $type, $sourceDocumentId));
 
         $message = match ($type) {
             Document::TYPE_CHANGE => __('documents.change_created'),
@@ -223,11 +209,6 @@ class DocumentController extends Controller
         $document->load([
             'histories.user',
             'creator',
-            'sourceDocument',
-            'latestDerivedDocument',
-            'derivedDocuments' => fn ($query) => $query
-                ->with('latestDerivedDocument')
-                ->orderBy('created_at', 'desc'),
         ]);
         $folders = Folder::orderBy('name')->get();
 
@@ -253,13 +234,13 @@ class DocumentController extends Controller
         if ($request->hasFile('pdf')) {
             Storage::delete($document->file_path);
             $pdf = $request->file('pdf');
-            $path = $pdf->storeAs('documents', $document->system_identifier . '.pdf');
+            $path = $pdf->storeAs('documents', $document->system_identifier.'.pdf');
 
             $data['file_path'] = $path;
             $data['original_filename'] = $pdf->getClientOriginalName();
         }
 
-        $document->update($data);
+        DB::transaction(fn () => $document->update($data));
 
         $changes = [];
         foreach ($original as $key => $value) {
@@ -303,14 +284,6 @@ class DocumentController extends Controller
 
     public function preview(Document $document)
     {
-        $document->load([
-            'sourceDocument',
-            'latestDerivedDocument',
-            'derivedDocuments' => fn ($query) => $query
-                ->with('latestDerivedDocument')
-                ->orderBy('created_at', 'desc'),
-        ]);
-
         return view('documents.preview', [
             'document' => $document,
             'publicView' => false,
@@ -318,22 +291,10 @@ class DocumentController extends Controller
     }
 
     /**
-     * Public preview for regular users — only when document is active and inside valid range.
+     * Public read-only document card, including inactive and repealed documents.
      */
     public function previewPublic(Document $document)
     {
-        if (! $this->isVisibleToPublic($document)) {
-            abort(403);
-        }
-
-        $document->load([
-            'sourceDocument',
-            'latestDerivedDocument',
-            'derivedDocuments' => fn ($query) => $query
-                ->with('latestDerivedDocument')
-                ->orderBy('created_at', 'desc'),
-        ]);
-
         return view('documents.preview', [
             'document' => $document,
             'publicView' => true,
@@ -346,7 +307,7 @@ class DocumentController extends Controller
 
         return response()->file($path, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $document->original_filename . '"',
+            'Content-Disposition' => 'inline; filename="'.$document->original_filename.'"',
         ]);
     }
 
@@ -356,43 +317,16 @@ class DocumentController extends Controller
     }
 
     /**
-     * Public download for regular users — only when document is active and inside valid range.
+     * Public PDF download for every document.
      */
     public function downloadPublic(Document $document)
     {
-        if (! $this->isVisibleToPublic($document)) {
-            abort(403);
-        }
-
         return $this->download($document);
     }
 
     public function filePublic(Document $document)
     {
-        if (! $this->isVisibleToPublic($document)) {
-            abort(403);
-        }
-
         return $this->file($document);
-    }
-
-    protected function isVisibleToPublic(Document $document): bool
-    {
-        if (! $document->active) {
-            return false;
-        }
-
-        $now = now();
-
-        if ($document->valid_from && $document->valid_from->gt($now)) {
-            return false;
-        }
-
-        if ($document->valid_to && $document->valid_to->lt($now)) {
-            return false;
-        }
-
-        return true;
     }
 
     public function move(Request $request, Document $document)
@@ -437,7 +371,7 @@ class DocumentController extends Controller
         }
 
         if ($field === 'type' && $value !== null) {
-            return __('documents.types.' . $value);
+            return __('documents.types.'.$value);
         }
 
         if ($field === 'source_document_id') {
@@ -504,7 +438,7 @@ class DocumentController extends Controller
 
         if ($request->hasFile('pdf')) {
             $pdf = $request->file('pdf');
-            $path = $pdf->storeAs('documents', $document->system_identifier . '.pdf');
+            $path = $pdf->storeAs('documents', $document->system_identifier.'.pdf');
 
             $document->update([
                 'file_path' => $path,
@@ -516,7 +450,7 @@ class DocumentController extends Controller
 
         if ($sourceDocumentId !== null) {
             $sourceDocument = Document::findOrFail($sourceDocumentId);
-            $path = 'documents/' . $document->system_identifier . '.pdf';
+            $path = 'documents/'.$document->system_identifier.'.pdf';
             Storage::copy($sourceDocument->file_path, $path);
 
             $document->update([
@@ -538,10 +472,10 @@ class DocumentController extends Controller
         if ($search !== '') {
             $query->where(function (Builder $searchQuery) use ($search) {
                 $searchQuery
-                    ->where('title', 'like', '%' . $search . '%')
-                    ->orWhere('document_number', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%')
-                    ->orWhere('original_filename', 'like', '%' . $search . '%');
+                    ->where('title', 'like', '%'.$search.'%')
+                    ->orWhere('document_number', 'like', '%'.$search.'%')
+                    ->orWhere('description', 'like', '%'.$search.'%')
+                    ->orWhere('original_filename', 'like', '%'.$search.'%');
             });
         }
 
@@ -585,8 +519,7 @@ class DocumentController extends Controller
         Collection $documents,
         bool $pruneEmptyFolders = true,
         ?int $selectedFolderId = null
-    ): array
-    {
+    ): array {
         $folderMap = $allFolders
             ->mapWithKeys(function (Folder $folder) {
                 $folder->setRelation('children', collect());
@@ -599,6 +532,7 @@ class DocumentController extends Controller
         foreach ($folderMap as $folder) {
             if ($folder->parent_id && $folderMap->has($folder->parent_id)) {
                 $folderMap->get($folder->parent_id)->children->push($folder);
+
                 continue;
             }
 
@@ -609,6 +543,7 @@ class DocumentController extends Controller
         foreach ($documents as $document) {
             if ($document->folder_id && $folderMap->has($document->folder_id)) {
                 $folderMap->get($document->folder_id)->documents->push($document);
+
                 continue;
             }
 

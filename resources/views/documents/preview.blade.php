@@ -4,16 +4,17 @@
 
 @section('content')
     @php
-        [$metaCardClass, $metaBorderClass] = match ($document->relationColorType()) {
+        [$metaCardClass, $metaBorderClass] = match ($document->type) {
             \App\Models\Document::TYPE_CHANGE => ['bg-amber-50', 'border-amber-200'],
             \App\Models\Document::TYPE_REPEAL => ['bg-rose-50', 'border-rose-200'],
             default => ['bg-slate-50', 'border-slate-100'],
         };
+        $hasRelatedDocuments = $document->connectedDocuments()->count() > 1;
     @endphp
     <div class="space-y-8">
         <div class="rounded-[2rem] bg-white p-8 shadow-xl ring-1 ring-slate-200">
-            <div class="mb-6">
-                <div class="w-full rounded-2xl border {{ $metaBorderClass }} {{ $metaCardClass }} p-6">
+            <div class="mb-6 grid items-start gap-6 {{ $hasRelatedDocuments ? 'lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px]' : '' }}">
+                <div class="min-w-0 rounded-2xl border {{ $metaBorderClass }} {{ $metaCardClass }} p-6">
                     <p class="text-sm uppercase tracking-[0.3em] text-slate-500">{{ __('documents.preview_title') }}</p>
                     <h1 class="mt-3 text-3xl font-semibold text-slate-950">{{ $document->title }}</h1>
                     <p class="mt-2 text-sm text-slate-600">{{ __('documents.fields.document_number') }}: <span class="font-medium text-slate-900">{{ $document->document_number }}</span></p>
@@ -43,48 +44,8 @@
                                     <p class="font-medium text-slate-900">{{ __('documents.types.' . $document->type) }}</p>
                                 </div>
 
-                                @if($document->type !== \App\Models\Document::TYPE_DOCUMENT)
-                                    <div>
-                                        <p class="text-xs text-slate-500">{{ __('documents.fields.source_document') }}</p>
-                                        <p class="font-medium text-slate-900">
-                                            @if($document->sourceDocument)
-                                                {{ $document->sourceDocument->title }}
-                                                @if(!empty($document->sourceDocument->document_number))
-                                                    <span class="text-slate-500">({{ $document->sourceDocument->document_number }})</span>
-                                                @endif
-                                            @else
-                                                —
-                                            @endif
-                                        </p>
-                                    </div>
-                                @endif
                             </div>
 
-                            @if($document->type === \App\Models\Document::TYPE_DOCUMENT && $document->derivedDocuments->isNotEmpty())
-                                <div class="mt-4">
-                                    <p class="text-xs text-slate-500">{{ __('documents.related_documents') }}</p>
-                                    <div class="mt-2 space-y-2">
-                                        @foreach($document->derivedDocuments as $relatedDocument)
-                                            @php
-                                                [$relatedBgClass, $relatedBorderClass, $relatedHoverClass] = match ($relatedDocument->relationColorType()) {
-                                                    \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/80', 'border-amber-200', 'hover:bg-amber-100/80'],
-                                                    \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/80', 'border-rose-200', 'hover:bg-rose-100/80'],
-                                                    default => ['bg-white/70', 'border-slate-200', 'hover:bg-white'],
-                                                };
-                                            @endphp
-                                            <a href="{{ !empty($publicView) ? route('documents.preview_public', $relatedDocument) : route('documents.preview', $relatedDocument) }}" class="block rounded-xl border {{ $relatedBorderClass }} {{ $relatedBgClass }} px-3 py-2 transition {{ $relatedHoverClass }}">
-                                                <p class="text-sm font-medium text-slate-900">
-                                                    {{ $relatedDocument->title }}
-                                                    @if(!empty($relatedDocument->document_number))
-                                                        <span class="text-slate-500">({{ $relatedDocument->document_number }})</span>
-                                                    @endif
-                                                </p>
-                                                <p class="text-xs text-slate-500">{{ __('documents.types.' . $relatedDocument->type) }}</p>
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
                         </div>
                     </div>
 
@@ -97,10 +58,16 @@
                         @endif
                     </div>
                 </div>
+                @if($hasRelatedDocuments)
+                    <aside class="min-w-0 lg:relative lg:self-stretch">
+                        @include('documents.partials._document-chain', ['sidebar' => true, 'fitHeight' => true])
+                    </aside>
+                @endif
             </div>
             <div class="h-[90vh] overflow-hidden rounded-[2rem] border border-slate-200">
                 <iframe
                     src="{{ !empty($publicView) ? route('documents.file_public', $document) : route('documents.file', $document) }}"
+                    title="Podgląd PDF: {{ $document->title }}"
                     class="h-full w-full"
                     frameborder="0"
                 ></iframe>

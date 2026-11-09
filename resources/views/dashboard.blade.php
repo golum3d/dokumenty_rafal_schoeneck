@@ -46,14 +46,7 @@
                                 <div class="min-w-0 flex-1">
                                     <p class="text-sm font-semibold text-slate-900">{{ $document->title }}</p>
                                     <p class="mt-1 text-sm text-slate-500">{{ $document->document_number }} • {{ __('documents.types.' . $document->type) }} • {{ $document->category }} • {{ $document->status }}</p>
-                                    @if($document->type !== \App\Models\Document::TYPE_DOCUMENT && $document->sourceDocument)
-                                        <p class="mt-1 text-sm text-slate-500">
-                                            Dotyczy: {{ $document->sourceDocument->title }}
-                                            @if(!empty($document->sourceDocument->document_number))
-                                                ({{ $document->sourceDocument->document_number }})
-                                            @endif
-                                        </p>
-                                    @endif
+                                    @include('documents.partials._document-applies-to', ['publicView' => ! $canManageDocuments])
                                     <p class="mt-1 text-sm text-slate-600">Opis: {{ $document->description }}</p>
                                 </div>
                                 <div class="flex items-center gap-4 flex-shrink-0">

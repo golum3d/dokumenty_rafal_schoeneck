@@ -1,5 +1,5 @@
 @php
-    [$cardBgClass, $cardBorderClass] = match ($document->relationColorType()) {
+    [$cardBgClass, $cardBorderClass] = match ($document->type) {
         \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/70', 'border-amber-200'],
         \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/70', 'border-rose-200'],
         default => ['bg-slate-50', 'border-slate-200'],
@@ -11,14 +11,7 @@
         <div>
             <p class="text-sm font-semibold text-slate-900">{{ $document->title }}</p>
             <p class="mt-1 text-sm text-slate-500">{{ $document->document_number }} • {{ __('documents.types.' . $document->type) }} • {{ $document->category }} • {{ $document->status }}</p>
-            @if($document->type !== \App\Models\Document::TYPE_DOCUMENT && $document->sourceDocument)
-                <p class="mt-1 text-sm text-slate-500">
-                    Dotyczy: {{ $document->sourceDocument->title }}
-                    @if(!empty($document->sourceDocument->document_number))
-                        ({{ $document->sourceDocument->document_number }})
-                    @endif
-                </p>
-            @endif
+            @include('documents.partials._document-applies-to', ['publicView' => true])
             <p class="mt-1 text-sm text-slate-600">Opis: {{ $document->description }}</p>
             <p class="mt-1 text-xs text-slate-500">Ważne: @if($document->valid_from) {{ $document->valid_from->format('d.m.Y') }} @else - @endif — @if($document->valid_to) {{ $document->valid_to->format('d.m.Y') }} @else - @endif</p>
         </div>

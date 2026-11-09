@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\DocumentHistory;
-use App\Models\User;
+use App\Services\DocumentFamily;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class Document extends Model
@@ -15,10 +15,15 @@ class Document extends Model
     use HasFactory;
 
     public const TYPE_DOCUMENT = 'document';
+
     public const TYPE_CHANGE = 'change';
+
     public const TYPE_REPEAL = 'repeal';
+
     public const RELATION_STATE_ACTIVE = 'active';
+
     public const RELATION_STATE_CHANGED = 'changed';
+
     public const RELATION_STATE_REPEALED = 'repealed';
 
     protected $fillable = [
@@ -67,13 +72,40 @@ class Document extends Model
     {
         static::creating(function (Document $document) {
             if (empty($document->system_identifier)) {
-                $document->system_identifier = 'DOC-' . strtoupper(Str::random(8));
+                $document->system_identifier = 'DOC-'.strtoupper(Str::random(8));
             }
 
             if (empty($document->created_by) && Auth::check()) {
                 $document->created_by = Auth::id();
             }
         });
+
+        static::saved(function (Document $document) {
+            app(DocumentFamily::class)->forget();
+            $family = $document->connectedDocuments();
+
+            if (! $family->contains('type', self::TYPE_REPEAL)) {
+                return;
+            }
+
+            DB::transaction(function () use ($family, $document) {
+                $activeIds = $family->where('active', true)->pluck('id');
+                self::query()->whereIn('id', $activeIds)->update(['active' => false]);
+
+                foreach ($activeIds as $id) {
+                    DocumentHistory::create([
+                        'document_id' => $id,
+                        'user_id' => Auth::id() ?? $document->created_by,
+                        'changes' => ['active' => ['old' => true, 'new' => false]],
+                    ]);
+                }
+            });
+
+            $document->active = false;
+            app(DocumentFamily::class)->forget();
+        });
+
+        static::deleted(fn () => app(DocumentFamily::class)->forget());
     }
 
     public function creator()
@@ -108,13 +140,18 @@ class Document extends Model
 
     public function relationColorType(): ?string
     {
-        $latestDerivedDocument = $this->relationLoaded('latestDerivedDocument')
-            ? $this->getRelation('latestDerivedDocument')
-            : $this->latestDerivedDocument()->first();
+        $family = $this->connectedDocuments();
 
-        return in_array($latestDerivedDocument?->type, [self::TYPE_CHANGE, self::TYPE_REPEAL], true)
-            ? $latestDerivedDocument->type
-            : null;
+        if ($family->contains('type', self::TYPE_REPEAL)) {
+            return self::TYPE_REPEAL;
+        }
+
+        return $family->contains('type', self::TYPE_CHANGE) ? self::TYPE_CHANGE : null;
+    }
+
+    public function connectedDocuments(): Collection
+    {
+        return app(DocumentFamily::class)->forDocument($this);
     }
 
     public function relationState(): string
