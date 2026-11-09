@@ -1,5 +1,5 @@
 @php
-    [$rowClass, $hoverClass] = match ($document->relationColorType()) {
+    [$rowClass, $hoverClass] = match ($document->type) {
         \App\Models\Document::TYPE_CHANGE => ['bg-amber-50/70', 'hover:bg-amber-100/70'],
         \App\Models\Document::TYPE_REPEAL => ['bg-rose-50/70', 'hover:bg-rose-100/70'],
         default => ['bg-white', 'hover:bg-slate-50'],
